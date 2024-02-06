@@ -1,2 +1,2 @@
-# continuos_integration
-continuos_integration
+# continuous_integration
+continuous_integration
