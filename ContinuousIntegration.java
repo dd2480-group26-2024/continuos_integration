@@ -12,7 +12,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
  Skeleton of a ContinuousIntegrationServer which acts as webhook
  See the Jetty documentation for API documentation of those classes.
 */
-public class ContinuousIntegrationServer extends AbstractHandler
+public class ContinuousIntegration extends AbstractHandler
 {
     public void handle(String target,
                        Request baseRequest,
@@ -38,7 +38,7 @@ public class ContinuousIntegrationServer extends AbstractHandler
     public static void main(String[] args) throws Exception
     {
         Server server = new Server(8080);
-        server.setHandler(new ContinuousIntegrationServer()); 
+        server.setHandler(new ContinuousIntegration()); 
         server.start();
         server.join();
     }
