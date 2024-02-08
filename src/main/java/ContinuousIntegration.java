@@ -9,7 +9,8 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import java.io.File;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-
+import java.util.stream.Collectors;
+import org.json.JSONObject;
  
 
 //Java stuff
@@ -58,14 +59,34 @@ public class ContinuousIntegration extends AbstractHandler
         baseRequest.setHandled(true);
 
         System.out.println(target);
-
+		
+		
+		
         // here you do all the continuous integration tasks
         // for example
         // 1st clone your repository
         // 2nd compile the code
+		
+		
 
         response.getWriter().println("CI job done");
     }
+	
+	// Returns a String[2], the first element is the clone_url, the second is the commit id
+	public String[] processRequestData(HttpServletRequest request){
+		String[] reqData = new String[2];
+		JSONObject requestBody = new JSONObject();
+		try{
+			requestBody = new JSONObject(request.getReader().lines().collect(Collectors.joining(System.lineSeparator())));
+		}catch(IOException e){
+			e.printStackTrace();
+		}
+		if (requestBody.has("head_commit")) {
+			reqData[0] = requestBody.getJSONObject("repository").getString("clone_url");
+			reqData[1] = requestBody.getJSONObject("head_commit").getString("id");
+		}
+		return reqData;
+	}
  
     // used to start the CI server in command line
     public static void main(String[] args) throws Exception
