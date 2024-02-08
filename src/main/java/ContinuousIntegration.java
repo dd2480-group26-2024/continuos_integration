@@ -47,6 +47,20 @@ public class ContinuousIntegration extends AbstractHandler
             e.printStackTrace();
         }
     }
+
+    public void runTests(String directoryPath){
+        try {
+            // run maven tests in cloned repo
+            command = "cd "+directoryPath+" && mvn test"
+            testResult = Runtime.getRuntime().exec(command)
+
+        } catch (Exception e) {
+            // Tests failed
+            return false
+        }
+        // Tests succeeded
+        return true
+    }
     
     public void handle(String target,
                        Request baseRequest,
