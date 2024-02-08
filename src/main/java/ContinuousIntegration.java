@@ -5,6 +5,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
  
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import java.io.File;
+import org.eclipse.jetty.server.handler.AbstractHandler;
+
  
 
 //Java stuff
