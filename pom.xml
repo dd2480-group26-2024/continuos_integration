@@ -47,8 +47,6 @@
 			<artifactId>org.eclipse.jgit</artifactId>
 			<version>5.13.0.202109080827-r</version> 
     	</dependency>
-
-
 	</dependencies>
 	<properties>
 		 <maven.compiler.source>17</maven.compiler.source>
@@ -57,7 +55,7 @@
 	
 	
 	<build>
-        <finalName>maven-unit-test</finalName>
+        <finalName>build</finalName>
         <plugins>
 
             <plugin>
@@ -65,7 +63,30 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
             </plugin>
-
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<archive>
+							<manifest>
+								<mainClass>
+									ContinuousIntegration
+								</mainClass>
+							</manifest>
+							</archive>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
         </plugins>
     </build>
     
