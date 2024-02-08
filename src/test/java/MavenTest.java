@@ -72,15 +72,15 @@ public class MavenTest {
 	}
 
     @Test
-    public void testClonedRepoTesting(@TempDir Path tempDir){
-        // Borrows a lot from testCloneAndCheckout,
+    public void testRepoTesting(@TempDir Path tempDir){
+        // Borrows a bit from testCloneAndCheckout,
         // consider refactoring and making a seperate
         // function that clones and checks out
 
         // Arrange
         ContinuousIntegration ci = new ContinuousIntegration();
-        String repoUrl = "https://github.com/dd2480-group26-2024/continuous_integration"; // replace with your repo URL
-        String commitId = "6cdd0d9b6d2d60956e9bb4750d4f1431219a5616"; // replace with a commit id to test
+        String repoUrl = "https://github.com/dd2480-group26-2024/continuous_integration";
+        String commitId = "1c97f870f54869e242d13812e889518c51c2fea5"; // replace with a commit id to test
         String directoryPath = tempDir.toString(); // Use JUnit's @TempDir feature to create a temporary directory
 
         try {
@@ -91,14 +91,16 @@ public class MavenTest {
             Path repoPath = tempDir.resolve(".git"); // Path to the .git directory
 
             FileRepositoryBuilder repositoryBuilder = new FileRepositoryBuilder();
-            try (Repository repository = repositoryBuilder.setGitDir(repoPath.toFile()).readEnvironment().findGitDir().build();
-
-            }
+            Repository repository = repositoryBuilder.setGitDir(repoPath.toFile()).readEnvironment().findGitDir().build();
 
             //JUnit cleans up the tempdir automatically!
         } catch (Exception e) {
             fail("Test failed due to exception: " + e.getMessage());
         }
+
+        // run tests in new directory
+        boolean result = ci.runTests(directoryPath);
+        assertTrue(result);
 
     }
 

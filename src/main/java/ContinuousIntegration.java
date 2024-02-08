@@ -11,7 +11,8 @@ import java.io.File;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import java.util.stream.Collectors;
 import org.json.JSONObject;
- 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 //Java stuff
 
@@ -48,18 +49,20 @@ public class ContinuousIntegration extends AbstractHandler
         }
     }
 
-    public void runTests(String directoryPath){
+    public boolean runTests(String directoryPath){
         try {
             // run maven tests in cloned repo
-            command = "cd "+directoryPath+" && mvn test"
-            testResult = Runtime.getRuntime().exec(command)
+            String command = "cd "+directoryPath+" && mvn test";
+            Process testProcess = Runtime.getRuntime().exec(command);
+            int exitCode = testProcess.waitFor();
 
         } catch (Exception e) {
             // Tests failed
-            return false
+            e.printStackTrace();
+            return false;
         }
         // Tests succeeded
-        return true
+        return true;
     }
     
     public void handle(String target,
