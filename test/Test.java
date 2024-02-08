@@ -4,6 +4,8 @@
  * OBS:
  * Does not currently compile, will depend on Maven and groupID
  *
+ * Example Junit5 Maven project: https://github.com/junit-team/junit5-samples/tree/r5.10.2/junit5-jupiter-starter-maven
+ *
  * TODO
  * Add following to the Maven build:
  *
