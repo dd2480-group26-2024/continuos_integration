@@ -75,12 +75,7 @@ public class ContinuousIntegration extends AbstractHandler
 	// Returns a String[2], the first element is the clone_url, the second is the commit id
 	public String[] processRequestData(HttpServletRequest request){
 		String[] reqData = new String[2];
-		JSONObject requestBody = new JSONObject();
-		try{
-			requestBody = new JSONObject(request.getReader().lines().collect(Collectors.joining(System.lineSeparator())));
-		}catch(IOException e){
-			e.printStackTrace();
-		}
+		JSONObject requestBody = new JSONObject(request.getParameter("payload"));
 		if (requestBody.has("head_commit")) {
 			reqData[0] = requestBody.getJSONObject("repository").getString("clone_url");
 			reqData[1] = requestBody.getJSONObject("head_commit").getString("id");

@@ -59,13 +59,7 @@ public class MavenTest {
 		HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
 		// Simplified GitHub request payload
 		String payload = "{\"repository\": {\"clone_url\": \"https://github.com/dd2480-group26-2024/continuous_integration.git\"},\"head_commit\": {\"id\": \"22473f129585cad9e0662860d1cc19c9d81e4081\" }}";
-        StringReader stringReader = new StringReader(payload);
-		BufferedReader reader = new BufferedReader(stringReader);
-		try{
-		Mockito.when(request.getReader()).thenReturn(reader);
-		}catch (IOException e){
-			fail("Test failed due to exception: " + e.getMessage());
-		}
+		Mockito.when(request.getParameter("payload")).thenReturn(payload);
 		String[] data = new String[2];
 		data = ci.processRequestData(request);
 		assertArrayEquals(new String[]{"https://github.com/dd2480-group26-2024/continuous_integration.git","22473f129585cad9e0662860d1cc19c9d81e4081"}, data);
