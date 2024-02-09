@@ -11,8 +11,8 @@ import java.io.File;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import java.util.stream.Collectors;
 import org.json.JSONObject;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.util.Collections;
+import org.apache.maven.shared.invoker.*;
 
 //Java stuff
 
@@ -48,23 +48,29 @@ public class ContinuousIntegration extends AbstractHandler
             e.printStackTrace();
         }
     }
+    
+    public static boolean runTests(String directoryPath){
+        System.out.println("\n\nPRINTING THE PATH:"+directoryPath+"\n\n");
+        File path = new File("");
+        InvocationRequest request = new DefaultInvocationRequest();
+        request.setBaseDirectory( path );
+        request.setBatchMode( true );  // sets batch mode so that the terminal doesn't stall and ask for input
+        request.setGoals( Collections.singletonList( "install" ) );
 
-    public boolean runTests(String directoryPath){
-        try {
-            // run maven tests in cloned repo
-            String command = "cd "+directoryPath+" && mvn test";
-            Process testProcess = Runtime.getRuntime().exec(command);
-            int exitCode = testProcess.waitFor();
+        Invoker invoker = new DefaultInvoker();
+        invoker.setMavenHome(path);
+        try{
+            InvocationResult result = invoker.execute( request );
 
-        } catch (Exception e) {
-            // Tests failed
+        }catch(MavenInvocationException e){
             e.printStackTrace();
             return false;
+
         }
-        // Tests succeeded
         return true;
+
     }
-    
+
     public void handle(String target,
                        Request baseRequest,
                        HttpServletRequest request,
@@ -108,9 +114,10 @@ public class ContinuousIntegration extends AbstractHandler
     // used to start the CI server in command line
     public static void main(String[] args) throws Exception
     {
-        Server server = new Server(8026);
-        server.setHandler(new ContinuousIntegration()); 
-        server.start();
-        server.join();
+        runTests("~/Programming/continuous_integration");
+        //Server server = new Server(8026);
+        //server.setHandler(new ContinuousIntegration());
+        //server.start();
+        //server.join();
     }
 }

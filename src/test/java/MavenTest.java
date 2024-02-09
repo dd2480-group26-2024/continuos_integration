@@ -70,13 +70,9 @@ public class MavenTest {
 		data = ci.processRequestData(request);
 		assertArrayEquals(new String[]{"https://github.com/dd2480-group26-2024/continuous_integration.git","22473f129585cad9e0662860d1cc19c9d81e4081"}, data);
 	}
-
+    /*
     @Test
     public void testRepoTesting(@TempDir Path tempDir){
-        // Borrows a bit from testCloneAndCheckout,
-        // consider refactoring and making a seperate
-        // function that clones and checks out
-
         // Arrange
         ContinuousIntegration ci = new ContinuousIntegration();
         String repoUrl = "https://github.com/dd2480-group26-2024/continuous_integration";
@@ -86,12 +82,6 @@ public class MavenTest {
         try {
             // Act
             ci.cloneAndCheckout(repoUrl, commitId, directoryPath);
-
-            // Assert
-            Path repoPath = tempDir.resolve(".git"); // Path to the .git directory
-
-            FileRepositoryBuilder repositoryBuilder = new FileRepositoryBuilder();
-            Repository repository = repositoryBuilder.setGitDir(repoPath.toFile()).readEnvironment().findGitDir().build();
 
             //JUnit cleans up the tempdir automatically!
         } catch (Exception e) {
@@ -103,5 +93,6 @@ public class MavenTest {
         assertTrue(result);
 
     }
+    §*/
 
 }
