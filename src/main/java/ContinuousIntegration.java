@@ -1,4 +1,6 @@
 import java.io.IOException;
+import java.io.InputStreamReader;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -7,6 +9,8 @@ import org.eclipse.jetty.server.Server;
  
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+
+import java.io.BufferedReader;
 import java.io.File;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
@@ -46,6 +50,36 @@ public class ContinuousIntegration extends AbstractHandler
             e.printStackTrace();
         }
     }
+    public boolean compile_java_file(String filePath) {
+        try {
+            File file = new File(filePath);
+            //check if the file exist
+            if (!file.exists() || !filePath.endsWith(".java")) {
+                throw new IllegalArgumentException("Cant find the java file: " + filePath);
+            }
+    
+    
+            // Execute the compilation command
+            Process process = Runtime.getRuntime().exec("javac " + filePath);
+            process.waitFor();
+    
+            // Check for compilation errors
+            BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+            String error_line;
+            boolean compileStatus = true;
+            while ((error_line = stdError.readLine()) != null) {
+                System.out.println(error_line);
+                compileStatus = false;
+            }
+    
+            return compileStatus;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return true;
+        }
+    }
+    
+    
     
     public void handle(String target,
                        Request baseRequest,
@@ -75,4 +109,7 @@ public class ContinuousIntegration extends AbstractHandler
         server.start();
         server.join();
     }
+
+  
+
 }

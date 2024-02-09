@@ -6,6 +6,8 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -46,5 +48,54 @@ public class MavenTest {
             fail("Test failed due to exception: " + e.getMessage());
         }
     }
+
+    @Test
+    public void test_compile_file_true(@TempDir Path tempDir) {
+        try {
+            // Create a file thats gonna compile correct
+            create_sample_file(tempDir,true);
+            ContinuousIntegration ci = new ContinuousIntegration();
+            String file_path = tempDir.resolve("TestClass.java").toString();
+
+            // Try to compile
+            boolean comp=ci.compile_java_file(file_path);
+            assertTrue(comp);
+    
+        } catch (Exception e) {
+            fail("Test failed due to exception: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    public void test_compile_file_false(@TempDir Path tempDir) {
+        try {
+            // Create a file thats not gonna compile correct
+            create_sample_file(tempDir,false);
+            ContinuousIntegration ci = new ContinuousIntegration();
+            String file_path = tempDir.resolve("Test_file.java").toString();
+
+            // Try to compile
+            boolean comp=ci.compile_java_file(file_path); 
+            assertFalse(comp);
+    
+        } catch (Exception e) {
+            fail("Test failed due to exception: " + e.getMessage());
+        }
+    }
+    
+    private void create_sample_file(Path directory, boolean correct_file) throws IOException {
+        String java_content;
+        if (correct_file) {
+            java_content = 
+            "public class Test_file { public static void main(String[] args) {System.out.println(\"Hello, World!\");}}";            
+        }
+        else{
+            java_content = 
+            "public class Test_file { public static void main(String[] args) {dsadasdas;}}";
+        }
+
+    Path javaFilePath = directory.resolve("Test_file.java");
+    Files.writeString(javaFilePath, java_content);
+}
 
 }
