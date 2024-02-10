@@ -76,7 +76,7 @@ public class MavenTest {
         // run tests in new directory
         ContinuousIntegration ci = new ContinuousIntegration();
         try{
-            boolean res = ci.runTests("/src/test/testProject");
+            boolean res = ci.runTests("/src/test/TestMavenProject/testProject");
             assertTrue(res);
         }catch (Exception e) {
             fail("Test failed due to exception: " + e.getMessage());
