@@ -48,24 +48,32 @@ public class ContinuousIntegration extends AbstractHandler
             e.printStackTrace();
         }
     }
-    
-    public static boolean runTests(String directoryPath){
-        System.out.println("\n\nPRINTING THE PATH:"+directoryPath+"\n\n");
-        File path = new File("");
+
+    public static boolean runTests(String directoryPath) throws Exception{
+        File path = new File(directoryPath);
         InvocationRequest request = new DefaultInvocationRequest();
         request.setBaseDirectory( path );
         request.setBatchMode( true );  // sets batch mode so that the terminal doesn't stall and ask for input
-        request.setGoals( Collections.singletonList( "install" ) );
+        request.setGoals( Collections.singletonList( "test" ) );
+        
+        String MAVEN_HOME = System.getenv("MAVEN_HOME");
+        if (MAVEN_HOME == null){
+            String errMsg = "\nException error due to MAVEN_HOME environment variable not set \n"
+                            + "Try adding it to your ~/.bashrc, ~/.profile or /etc/environment file \n"
+                            + "export MAVEN_HOME=<path> \n"
+                            + "tip: you can find the path by entering \"mvn --version\"\n";
+
+            throw new Exception(errMsg);
+        }
 
         Invoker invoker = new DefaultInvoker();
-        invoker.setMavenHome(path);
+        invoker.setMavenHome(new File (MAVEN_HOME));
         try{
             InvocationResult result = invoker.execute( request );
 
         }catch(MavenInvocationException e){
             e.printStackTrace();
             return false;
-
         }
         return true;
 
@@ -114,10 +122,9 @@ public class ContinuousIntegration extends AbstractHandler
     // used to start the CI server in command line
     public static void main(String[] args) throws Exception
     {
-        runTests("~/Programming/continuous_integration");
-        //Server server = new Server(8026);
-        //server.setHandler(new ContinuousIntegration());
-        //server.start();
-        //server.join();
+        Server server = new Server(8026);
+        server.setHandler(new ContinuousIntegration());
+        server.start();
+        server.join();
     }
 }

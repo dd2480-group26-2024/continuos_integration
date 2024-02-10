@@ -70,29 +70,18 @@ public class MavenTest {
 		data = ci.processRequestData(request);
 		assertArrayEquals(new String[]{"https://github.com/dd2480-group26-2024/continuous_integration.git","22473f129585cad9e0662860d1cc19c9d81e4081"}, data);
 	}
-    /*
+    //"src/test/testProject"
     @Test
-    public void testRepoTesting(@TempDir Path tempDir){
-        // Arrange
+    public void testRepoTesting(){
+        // run tests in new directory
         ContinuousIntegration ci = new ContinuousIntegration();
-        String repoUrl = "https://github.com/dd2480-group26-2024/continuous_integration";
-        String commitId = "1c97f870f54869e242d13812e889518c51c2fea5"; // replace with a commit id to test
-        String directoryPath = tempDir.toString(); // Use JUnit's @TempDir feature to create a temporary directory
-
-        try {
-            // Act
-            ci.cloneAndCheckout(repoUrl, commitId, directoryPath);
-
-            //JUnit cleans up the tempdir automatically!
-        } catch (Exception e) {
+        try{
+            boolean res = ci.runTests("/src/test/testProject");
+            assertTrue(res);
+        }catch (Exception e) {
             fail("Test failed due to exception: " + e.getMessage());
         }
 
-        // run tests in new directory
-        boolean result = ci.runTests(directoryPath);
-        assertTrue(result);
-
     }
-    §*/
 
 }
