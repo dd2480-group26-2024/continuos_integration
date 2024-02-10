@@ -50,32 +50,35 @@ public class ContinuousIntegration extends AbstractHandler
             e.printStackTrace();
         }
     }
-    public boolean compile_java_file(String filePath) {
+
+    public boolean compileMavenProject(String projectDirectory) {
         try {
-            File file = new File(filePath);
-            //check if the file exist
-            if (!file.exists() || !filePath.endsWith(".java")) {
-                throw new IllegalArgumentException("Cant find the java file: " + filePath);
-            }
-    
-    
-            // Execute the compilation command
-            Process process = Runtime.getRuntime().exec("javac " + filePath);
+            // command to compile mvn program
+            String[] command = {"mvn", "clean", "compile"};
+
+            // start the process
+            ProcessBuilder processBuilder = new ProcessBuilder(command);
+            processBuilder.directory(new File(projectDirectory)); 
+            processBuilder.redirectErrorStream(true);
+            Process process = processBuilder.start();
             process.waitFor();
-    
-            // Check for compilation errors
-            BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            String error_line;
-            boolean compileStatus = true;
-            while ((error_line = stdError.readLine()) != null) {
-                System.out.println(error_line);
-                compileStatus = false;
+
+            // read the output
+            BufferedReader outputError = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String tempLine;
+            boolean projectWorking = true;
+            while ((tempLine = outputError.readLine()) != null) {
+
+                //Print the error
+                //System.out.println(tempLine);
+                if (tempLine.contains("[ERROR]")) {
+                    projectWorking = false;
+                }
             }
-    
-            return compileStatus;
+            return projectWorking;
         } catch (Exception e) {
             e.printStackTrace();
-            return true;
+            return false; 
         }
     }
     
