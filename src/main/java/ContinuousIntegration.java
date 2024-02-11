@@ -1,4 +1,6 @@
 import java.io.IOException;
+import java.io.InputStreamReader;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -7,6 +9,8 @@ import org.eclipse.jetty.server.Server;
  
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+
+import java.io.BufferedReader;
 import java.io.File;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import java.util.stream.Collectors;
@@ -47,6 +51,43 @@ public class ContinuousIntegration extends AbstractHandler
             e.printStackTrace();
         }
     }
+
+    public boolean compileMavenProject(String projectDirectory) {
+        try {
+            // command to compile mvn program
+            String[] command = {"mvn", "clean", "compile"};
+    
+            // start the process
+            ProcessBuilder processBuilder = new ProcessBuilder(command);
+            processBuilder.directory(new File(projectDirectory)); 
+            processBuilder.redirectErrorStream(true);
+            Process process = processBuilder.start();
+            int exitCode = process.waitFor(); 
+    
+            
+            BufferedReader outputError = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String tempLine;
+            boolean projectWorking = true;
+
+            // Check if the exit code is 0
+            if (exitCode != 0) {
+                projectWorking = false;
+            }
+    
+            while ((tempLine = outputError.readLine()) != null) {
+                if (tempLine.contains("[ERROR]")) {
+                    projectWorking = false;
+                }
+            }
+            return projectWorking;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    
+    
     
     public void handle(String target,
                        Request baseRequest,
@@ -96,4 +137,7 @@ public class ContinuousIntegration extends AbstractHandler
         server.start();
         server.join();
     }
+
+  
+
 }

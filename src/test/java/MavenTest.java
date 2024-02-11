@@ -6,6 +6,8 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -71,4 +73,30 @@ public class MavenTest {
 		assertArrayEquals(new String[]{"https://github.com/dd2480-group26-2024/continuous_integration.git","22473f129585cad9e0662860d1cc19c9d81e4081"}, data);
 	}
 
+    @Test
+    public void test_compile_project_true() {
+        try {
+            ContinuousIntegration ci = new ContinuousIntegration();
+
+            // Try to compile the correct project
+            boolean comp=ci.compileMavenProject("src/test/TestMavenProject/mvnProjectCorrect");
+            assertTrue(comp);
+
+        } catch (Exception e) {
+            fail("Test failed due to exception: " + e.getMessage());
+        }
+    }
+    @Test
+    public void test_compile_project_false() {
+        try {
+            ContinuousIntegration ci = new ContinuousIntegration();
+
+            // Try to compile the incorrect project
+            boolean comp=ci.compileMavenProject("src/test/TestMavenProject/mvnProjectIncorrect");
+            assertFalse(comp);
+
+        } catch (Exception e) {
+            fail("Test failed due to exception: " + e.getMessage());
+        }
+    }
 }
