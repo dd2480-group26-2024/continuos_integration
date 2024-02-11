@@ -55,22 +55,25 @@ public class ContinuousIntegration extends AbstractHandler
         try {
             // command to compile mvn program
             String[] command = {"mvn", "clean", "compile"};
-
+    
             // start the process
             ProcessBuilder processBuilder = new ProcessBuilder(command);
             processBuilder.directory(new File(projectDirectory)); 
             processBuilder.redirectErrorStream(true);
             Process process = processBuilder.start();
-            process.waitFor();
-
-            // read the output
+            int exitCode = process.waitFor(); 
+    
+            
             BufferedReader outputError = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String tempLine;
             boolean projectWorking = true;
-            while ((tempLine = outputError.readLine()) != null) {
 
-                //Print the error
-                //System.out.println(tempLine);
+            // Check if the exit code is 0
+            if (exitCode != 0) {
+                projectWorking = false;
+            }
+    
+            while ((tempLine = outputError.readLine()) != null) {
                 if (tempLine.contains("[ERROR]")) {
                     projectWorking = false;
                 }
@@ -78,9 +81,10 @@ public class ContinuousIntegration extends AbstractHandler
             return projectWorking;
         } catch (Exception e) {
             e.printStackTrace();
-            return false; 
+            return false;
         }
     }
+    
     
     
     
