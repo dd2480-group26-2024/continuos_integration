@@ -69,12 +69,27 @@ public class ContinuousIntegration extends AbstractHandler
         // for example
         // 1st clone your repository
         // 2nd compile the code
-		
-		
+        String requestBody = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+        JSONObject requestBodyJson = new JSONObject(requestBody);
+        //Start processing the webhook commit
+        String webhookCommitResult = "";
+        sendEmailNotification(requestBodyJson, webhookCommitResult);
+
+
 
         response.getWriter().println("CI job done");
     }
-	
+
+    /**
+     * Method to check that it compiles and tests, to be used together with sendEmailNotification
+     * @param compileStatus currently a boolean, depends on the final method
+     * @param testStatus    currently a boolean, depends on the final method
+     * @return A string with the result such that it can be used to know what to tell the email address
+     */
+    private String checkCommitResult(boolean compileStatus, boolean testStatus){
+        String state = "";
+        return state;
+    }
 
     // Send email notfication method
     public boolean sendEmailNotification(JSONObject requestBodyJson, String webhookCommitResult){
@@ -106,12 +121,12 @@ public class ContinuousIntegration extends AbstractHandler
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toUser));
             message.setSubject("Current state update");
 
-            if(webhookCommitResult.contains("BUILD SUCESS")){
-                message.setText("The latest commit resulted in: SUCCESS \n");
-            } else if(webhookCommitResult.contains("BUILD FAIL") || webhookCommitResult.contains("COMPILATION ERROR")){
-                message.setText("The latest commit resulted in: FAILURE\n");
+                if(webhookCommitResult.contains("BUILD SUCCESS")){
+                    message.setText("The latest commit resulted in: SUCCESS \n" + headCommitId);
+                } else if(webhookCommitResult.contains("BUILD FAIL") || webhookCommitResult.contains("COMPILATION ERROR")){
+                message.setText("The latest commit resulted in: FAILURE\n" + headCommitId);
             } else {
-                message.setText("Error, issue unknown");
+                message.setText("Error, issue unknown" + headCommitId);
             }
             Transport.send(message);
             System.out.println("Message has been sent");
