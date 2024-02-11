@@ -49,7 +49,12 @@
 			<artifactId>json</artifactId>
 			<version>20231013</version>
 		</dependency>
-
+        <!-- for sending mail -->
+        <dependency>
+                <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+                <version>1.6.2</version>
+        </dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
 		<dependency>

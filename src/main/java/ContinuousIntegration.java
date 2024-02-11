@@ -12,6 +12,8 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import java.util.stream.Collectors;
 import org.json.JSONObject;
  
+import javax.mail.*;
+import javax.mail.internet.*;
 
 //Java stuff
 
@@ -70,6 +72,53 @@ public class ContinuousIntegration extends AbstractHandler
 		
 
         response.getWriter().println("CI job done");
+    }
+	
+
+    // Send email notfication method
+    public boolean sendEmailNotification(JSONObject requestBodyJson, String webhookCommitResult){
+        final String username = "group26kth@gmail.com";
+        final String password = "kth26group";
+
+        // SMTP server settings (for Gmail)
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host", "smtp.gmail.com");
+        props.put("mail.smtp.port", "587");
+
+        // Create a Session object
+        Session session = Session.getInstance(props, new javax.mail.Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(username, password);
+            }
+        });
+
+        try {
+            String headCommitId = requestBodyJson.getJSONObject("head_commit").getString("id");
+            String repoURL = requestBodyJson.getJSONObject("repository").getString("clone_url");
+            String toUser = requestBodyJson.getJSONObject("head_commit").getJSONObject("committer").getString("email");
+
+            Message message = new MimeMessage(session);
+            //Change here to change sender email!
+            message.setFrom(new InternetAddress("group26kth@gmail.com"));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toUser));
+            message.setSubject("Current state update");
+
+            if(webhookCommitResult.contains("BUILD SUCESS")){
+                message.setText("The latest commit resulted in: SUCCESS \n");
+            } else if(webhookCommitResult.contains("BUILD FAIL") || webhookCommitResult.contains("COMPILATION ERROR")){
+                message.setText("The latest commit resulted in: FAILURE\n");
+            } else {
+                message.setText("Error, issue unknown");
+            }
+            Transport.send(message);
+            System.out.println("Message has been sent");
+            return true;
+        }catch (MessagingException e){
+            e.printStackTrace();
+        }
+        return false;
     }
 	
 	// Returns a String[2], the first element is the clone_url, the second is the commit id
