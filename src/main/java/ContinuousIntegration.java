@@ -9,7 +9,6 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import java.io.File;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import java.util.stream.Collectors;
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -73,15 +72,10 @@ public class ContinuousIntegration extends AbstractHandler
         response.getWriter().println("CI job done");
     }
 	
-	// Modifies the HashMap<String, String> passed as parameter. 
-	// Clone url accesible with key "clone_url" and commit id with key "commit_id".
-	public void processRequestData(HttpServletRequest request, HashMap<String, String> map){
+	// Extract data from GitHub's request and return a JSONObject
+	public JSONObject processRequestData(HttpServletRequest request){
 		JSONObject requestBody = new JSONObject(request.getParameter("payload"));
-		if (requestBody.has("head_commit")) {
-			map.put("clone_url", requestBody.getJSONObject("repository").getString("clone_url"));
-			map.put("commit_id", requestBody.getJSONObject("head_commit").getString("id"));
-		}
-		return;
+		return requestBody;
 	}
  
     // used to start the CI server in command line

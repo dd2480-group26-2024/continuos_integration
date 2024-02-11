@@ -8,6 +8,7 @@ import org.junit.jupiter.api.io.TempDir;
 import static org.junit.jupiter.api.Assertions.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.json.JSONObject;
 
 import org.mockito.Mockito;
 import javax.servlet.http.HttpServletRequest;
@@ -57,16 +58,13 @@ public class MavenTest {
 	@Test
 	public void testProcessRequestData(){
 		ContinuousIntegration ci = new ContinuousIntegration();
-		HashMap<String, String> map = new HashMap<>();
-		HashMap<String, String> refMap = new HashMap<>();
 		HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
 		// Simplified GitHub request payload
 		String payload = "{\"repository\": {\"clone_url\": \"https://github.com/dd2480-group26-2024/continuous_integration.git\"},\"head_commit\": {\"id\": \"22473f129585cad9e0662860d1cc19c9d81e4081\" }}";
+		JSONObject expected = new JSONObject(payload);
 		Mockito.when(request.getParameter("payload")).thenReturn(payload);
-		ci.processRequestData(request, map);
-		refMap.put("clone_url","https://github.com/dd2480-group26-2024/continuous_integration.git");
-		refMap.put("commit_id","22473f129585cad9e0662860d1cc19c9d81e4081");
-		assertTrue(map.equals(refMap));
+		JSONObject result = ci.processRequestData(request);
+		assertTrue(result.similar(expected));
 	}
 
 }
