@@ -11,7 +11,8 @@ import java.io.File;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import java.util.stream.Collectors;
 import org.json.JSONObject;
- 
+
+import java.util.HashMap;
 
 //Java stuff
 
@@ -72,15 +73,15 @@ public class ContinuousIntegration extends AbstractHandler
         response.getWriter().println("CI job done");
     }
 	
-	// Returns a String[2], the first element is the clone_url, the second is the commit id
-	public String[] processRequestData(HttpServletRequest request){
-		String[] reqData = new String[2];
+	// Modifies the HashMap<String, String> passed as parameter. 
+	// Clone url accesible with key "clone_url" and commit id with key "commit_id".
+	public void processRequestData(HttpServletRequest request, HashMap<String, String> map){
 		JSONObject requestBody = new JSONObject(request.getParameter("payload"));
 		if (requestBody.has("head_commit")) {
-			reqData[0] = requestBody.getJSONObject("repository").getString("clone_url");
-			reqData[1] = requestBody.getJSONObject("head_commit").getString("id");
+			map.put("clone_url", requestBody.getJSONObject("repository").getString("clone_url"));
+			map.put("commit_id", requestBody.getJSONObject("head_commit").getString("id"));
 		}
-		return reqData;
+		return;
 	}
  
     // used to start the CI server in command line

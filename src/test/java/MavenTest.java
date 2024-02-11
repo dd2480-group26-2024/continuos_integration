@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.StringReader;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.HashMap;
 
 public class MavenTest {
 
@@ -56,13 +57,16 @@ public class MavenTest {
 	@Test
 	public void testProcessRequestData(){
 		ContinuousIntegration ci = new ContinuousIntegration();
+		HashMap<String, String> map = new HashMap<>();
+		HashMap<String, String> refMap = new HashMap<>();
 		HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
 		// Simplified GitHub request payload
 		String payload = "{\"repository\": {\"clone_url\": \"https://github.com/dd2480-group26-2024/continuous_integration.git\"},\"head_commit\": {\"id\": \"22473f129585cad9e0662860d1cc19c9d81e4081\" }}";
 		Mockito.when(request.getParameter("payload")).thenReturn(payload);
-		String[] data = new String[2];
-		data = ci.processRequestData(request);
-		assertArrayEquals(new String[]{"https://github.com/dd2480-group26-2024/continuous_integration.git","22473f129585cad9e0662860d1cc19c9d81e4081"}, data);
+		ci.processRequestData(request, map);
+		refMap.put("clone_url","https://github.com/dd2480-group26-2024/continuous_integration.git");
+		refMap.put("commit_id","22473f129585cad9e0662860d1cc19c9d81e4081");
+		assertTrue(map.equals(refMap));
 	}
 
 }
