@@ -70,5 +70,32 @@ public class MavenTest {
 		data = ci.processRequestData(request);
 		assertArrayEquals(new String[]{"https://github.com/dd2480-group26-2024/continuous_integration.git","22473f129585cad9e0662860d1cc19c9d81e4081"}, data);
 	}
+	
+	@Test
+	public void sendEmailNotificationBuildSuccess() {
+		ContinuousIntegration ci = new ContinuousIntegration();
+		
+		// Mock the request data
+		HashMap<String, String> requestData = new HashMap<>();
+		requestData.put("commit_id", "ecff3ba2c436e2fa743b149d33b906ed74370620");
+		requestData.put("clone_url", "https://github.com/robinho46/sendMailTestRepo.git");
+		requestData.put("email", "robin.yurt@hotmail.com"); // Replace with the recipient's email address
 
+		// Call the method and assert the result
+		assertTrue(ci.sendEmailNotification(requestData, true));
+	}
+	
+	@Test
+	public void sendEmailNotificationBuildFailure(){
+		ContinuousIntegration ci = new ContinuousIntegration();
+		
+		// Mock the request data
+		HashMap<String, String> requestData = new HashMap<>();
+		requestData.put("commit_id", "ecff3ba2c436e2fa743b149d33b906ed74370620");
+		requestData.put("clone_url", "https://github.com/robinho46/sendMailTestRepo.git");
+		requestData.put("email", "robin.yurt@hotmail.com"); // Replace with the recipient's email address
+
+		// Call the method and assert the result
+		assertTrue(ci.sendEmailNotification(requestData, false));
+	}
 }
