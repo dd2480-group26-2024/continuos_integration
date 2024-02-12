@@ -83,7 +83,7 @@ public class ContinuousIntegration extends AbstractHandler
     }
 
     // Send email notfication method
-	public static boolean sendEmailNotification(HashMap<String, String> requestData, boolean compileStatus) {
+	public boolean sendEmailNotification(HashMap<String, String> requestData, boolean compileStatus) {
 		final String username = "group26kth@gmail.com";
 		final String password = "tlsf nrys dquv mpce ";
 
