@@ -113,10 +113,16 @@ public class ContinuousIntegration extends AbstractHandler
         response.getWriter().println("CI job done");
     }
 	
-	// Extract data from GitHub's request and return a JSONObject
-	public JSONObject processRequestData(HttpServletRequest request){
-		JSONObject requestBody = new JSONObject(request.getParameter("payload"));
-		return requestBody;
+	// Extract data from GitHub's request and return a HashMap<String, String> with the data required for the CI server
+	public HashMap<String,String> processRequestData(HttpServletRequest request){
+		JSONObject requestBody = new JSONObject(request.getParameter("payload"));	
+		HashMap<String,String> map = new HashMap<>();			
+		map.put("clone_url", requestBody.getJSONObject("repository").getString("clone_url")); 
+		map.put("commit_id", requestBody.getJSONObject("head_commit").getString("id")); 
+		map.put("email", requestBody.getJSONObject("head_commit").getJSONObject("committer").getString("email")); 
+		map.put("timestamp", requestBody.getJSONObject("head_commit").getString("timestamp")); 
+		map.put("commit_message", requestBody.getJSONObject("head_commit").getString("message")); 
+		return map;
 	}
  
     // used to start the CI server in command line
