@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import javax.mail.*;
 import javax.mail.internet.*;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 //Java stuff
 
@@ -71,63 +72,60 @@ public class ContinuousIntegration extends AbstractHandler
         // 2nd compile the code
 
         // Testing email notification
-        String requestBody = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
-        JSONObject requestBodyJson = new JSONObject(requestBody);
-
-        // String path = "src/test/TestMavenProject/mvnProjectIncorrect";
-        boolean compileStatus = true;
-        sendEmailNotification(requestBodyJson, compileStatus);
+		HashMap<String, String> requestData = processRequestData(request);
+		//Should use the compileMavenProject when it is fully working
+		boolean compileStatus = true; // Example status, replace with your logic
+		sendEmailNotification(requestData, compileStatus);
 
         response.getWriter().println("CI job done");
+	
+	// Returns a String[2], the first element is the clone_url, the second is the commit id
     }
 
     // Send email notfication method
-    public boolean sendEmailNotification(JSONObject requestBodyJson, boolean compileStatus){
-        final String username = "group26kth@gmail.com";
-        final String password = "kth26group";
+	public static boolean sendEmailNotification(HashMap<String, String> requestData, boolean compileStatus) {
+		final String username = "group26kth@gmail.com";
+		final String password = "tlsf nrys dquv mpce ";
 
-        // SMTP server settings (for Gmail)
-        Properties props = new Properties();
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.host", "smtp.gmail.com");
-        props.put("mail.smtp.port", "587");
+		// SMTP server settings (for Gmail)
+		Properties props = new Properties();
+		props.put("mail.smtp.auth", "true");
+		props.put("mail.smtp.starttls.enable", "true");
+		props.put("mail.smtp.host", "smtp.gmail.com");
+		props.put("mail.smtp.port", "587");
 
-        // Create a Session object
-        Session session = Session.getInstance(props, new javax.mail.Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(username, password);
-            }
-        });
+		// Create a Session object
+		Session session = Session.getInstance(props, new javax.mail.Authenticator() {
+			protected PasswordAuthentication getPasswordAuthentication() {
+				return new PasswordAuthentication(username, password);
+			}
+		});
 
-        try {
-            String headCommitId = requestBodyJson.getJSONObject("head_commit").getString("id");
-            String repoURL = requestBodyJson.getJSONObject("repository").getString("clone_url");
-            String toUser = requestBodyJson.getJSONObject("head_commit").getJSONObject("committer").getString("email");
+		try {
+			String headCommitId = requestData.get("commit_id");
+			String repoURL = requestData.get("clone_url");
+			String toUser = requestData.get("email");
 
-            Message message = new MimeMessage(session);
-            //Change here to change sender email!
-            message.setFrom(new InternetAddress("group26kth@gmail.com"));
-            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toUser));
-            message.setSubject("Current state update");
+			Message message = new MimeMessage(session);
+			message.setFrom(new InternetAddress("group26kth@gmail.com"));
+			message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toUser));
+			message.setSubject("Current state update");
 
-            if(compileStatus){
-                message.setText("The latest commit resulted in: SUCCESS \n" + headCommitId);
-            } else if(!compileStatus){
-            message.setText("The latest commit resulted in: FAILURE\n" + headCommitId);
-            } else {
-                message.setText("Error, issue unknown" + headCommitId);
-            }
-            Transport.send(message);
-            System.out.println("Message has been sent");
-            return true;
-        }catch (MessagingException e){
-            e.printStackTrace();
-        }
-        return false;
-    }
-	
-	// Returns a String[2], the first element is the clone_url, the second is the commit id
+			if (compileStatus) {
+				message.setText("The latest commit resulted in: SUCCESS \n" + headCommitId);
+			} else if (!compileStatus) {
+				message.setText("The latest commit resulted in: FAILURE\n" + headCommitId);
+			} else {
+				message.setText("Error, issue unknown" + headCommitId);
+			}
+			Transport.send(message);
+			System.out.println("Message has been sent");
+			return true;
+		} catch (MessagingException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 	public String[] processRequestData(HttpServletRequest request){
 		String[] reqData = new String[2];
 		JSONObject requestBody = new JSONObject();
