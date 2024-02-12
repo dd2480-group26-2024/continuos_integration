@@ -72,8 +72,8 @@ public class ContinuousIntegration extends AbstractHandler
         String requestBody = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
         JSONObject requestBodyJson = new JSONObject(requestBody);
         //Start processing the webhook commit
-        String webhookCommitResult = "";
-        sendEmailNotification(requestBodyJson, webhookCommitResult);
+        String commitResult = checkCommitResult();
+        sendEmailNotification(requestBodyJson, commitResult);
 
 
 
@@ -83,12 +83,15 @@ public class ContinuousIntegration extends AbstractHandler
     /**
      * Method to check that it compiles and tests, to be used together with sendEmailNotification
      * @param compileStatus currently a boolean, depends on the final method
-     * @param testStatus    currently a boolean, depends on the final method
      * @return A string with the result such that it can be used to know what to tell the email address
      */
-    private String checkCommitResult(boolean compileStatus, boolean testStatus){
-        String state = "";
-        return state;
+    private String checkCommitResult(boolean compileStatus){
+        if(!compileStatus){
+            return "BUILD FAIL";
+        } else if(compileStatus){
+            return "BUILD SUCCESS";
+        }
+        return "";
     }
 
     // Send email notfication method
