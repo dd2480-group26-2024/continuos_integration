@@ -1,4 +1,6 @@
 import java.io.IOException;
+import java.io.InputStreamReader;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -7,15 +9,17 @@ import org.eclipse.jetty.server.Server;
  
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+
+import java.io.BufferedReader;
 import java.io.File;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import java.util.stream.Collectors;
 import org.json.JSONObject;
  
 import javax.mail.*;
 import javax.mail.internet.*;
 import java.util.Properties;
 import java.util.stream.Collectors;
+import java.util.HashMap;
 
 //Java stuff
 
@@ -51,6 +55,43 @@ public class ContinuousIntegration extends AbstractHandler
             e.printStackTrace();
         }
     }
+
+    public boolean compileMavenProject(String projectDirectory) {
+        try {
+            // command to compile mvn program
+            String[] command = {"mvn", "clean", "compile"};
+    
+            // start the process
+            ProcessBuilder processBuilder = new ProcessBuilder(command);
+            processBuilder.directory(new File(projectDirectory)); 
+            processBuilder.redirectErrorStream(true);
+            Process process = processBuilder.start();
+            int exitCode = process.waitFor(); 
+    
+            
+            BufferedReader outputError = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String tempLine;
+            boolean projectWorking = true;
+
+            // Check if the exit code is 0
+            if (exitCode != 0) {
+                projectWorking = false;
+            }
+    
+            while ((tempLine = outputError.readLine()) != null) {
+                if (tempLine.contains("[ERROR]")) {
+                    projectWorking = false;
+                }
+            }
+            return projectWorking;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    
+    
     
     public void handle(String target,
                        Request baseRequest,
@@ -78,8 +119,7 @@ public class ContinuousIntegration extends AbstractHandler
 		sendEmailNotification(requestData, compileStatus);
 
         response.getWriter().println("CI job done");
-	
-	// Returns a String[2], the first element is the clone_url, the second is the commit id
+
     }
 
     // Send email notfication method
@@ -126,6 +166,8 @@ public class ContinuousIntegration extends AbstractHandler
 		}
 		return false;
 	}
+  
+  	// Returns a String[2], the first element is the clone_url, the second is the commit id
 	public String[] processRequestData(HttpServletRequest request){
 		String[] reqData = new String[2];
 		JSONObject requestBody = new JSONObject();
@@ -139,6 +181,11 @@ public class ContinuousIntegration extends AbstractHandler
 			reqData[1] = requestBody.getJSONObject("head_commit").getString("id");
 		}
 		return reqData;
+
+	// Extract data from GitHub's request and return a JSONObject
+	public JSONObject processRequestData(HttpServletRequest request){
+		JSONObject requestBody = new JSONObject(request.getParameter("payload"));
+		return requestBody;
 	}
  
     // used to start the CI server in command line
@@ -149,4 +196,7 @@ public class ContinuousIntegration extends AbstractHandler
         server.start();
         server.join();
     }
+
+  
+
 }

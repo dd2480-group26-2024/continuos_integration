@@ -6,14 +6,18 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.json.JSONObject;
 
 import org.mockito.Mockito;
 import javax.servlet.http.HttpServletRequest;
 import java.io.StringReader;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.HashMap;
 
 public class MavenTest {
 
@@ -59,17 +63,38 @@ public class MavenTest {
 		HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
 		// Simplified GitHub request payload
 		String payload = "{\"repository\": {\"clone_url\": \"https://github.com/dd2480-group26-2024/continuous_integration.git\"},\"head_commit\": {\"id\": \"22473f129585cad9e0662860d1cc19c9d81e4081\" }}";
-        StringReader stringReader = new StringReader(payload);
-		BufferedReader reader = new BufferedReader(stringReader);
-		try{
-		Mockito.when(request.getReader()).thenReturn(reader);
-		}catch (IOException e){
-			fail("Test failed due to exception: " + e.getMessage());
-		}
-		String[] data = new String[2];
-		data = ci.processRequestData(request);
-		assertArrayEquals(new String[]{"https://github.com/dd2480-group26-2024/continuous_integration.git","22473f129585cad9e0662860d1cc19c9d81e4081"}, data);
+		JSONObject expected = new JSONObject(payload);
+		Mockito.when(request.getParameter("payload")).thenReturn(payload);
+		JSONObject result = ci.processRequestData(request);
+		assertTrue(result.similar(expected));
 	}
+	
+    @Test
+    public void test_compile_project_true() {
+        try {
+            ContinuousIntegration ci = new ContinuousIntegration();
+
+            // Try to compile the correct project
+            boolean comp=ci.compileMavenProject("src/test/TestMavenProject/mvnProjectCorrect");
+            assertTrue(comp);
+
+        } catch (Exception e) {
+            fail("Test failed due to exception: " + e.getMessage());
+        }
+    }
+    @Test
+    public void test_compile_project_false() {
+        try {
+            ContinuousIntegration ci = new ContinuousIntegration();
+
+            // Try to compile the incorrect project
+            boolean comp=ci.compileMavenProject("src/test/TestMavenProject/mvnProjectIncorrect");
+            assertFalse(comp);
+
+        } catch (Exception e) {
+            fail("Test failed due to exception: " + e.getMessage());
+        }
+    }
 	
 	@Test
 	public void sendEmailNotificationBuildSuccess() {
@@ -98,4 +123,5 @@ public class MavenTest {
 		// Call the method and assert the result
 		assertTrue(ci.sendEmailNotification(requestData, false));
 	}
+
 }
