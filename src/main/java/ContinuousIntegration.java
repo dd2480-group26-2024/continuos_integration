@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 import java.util.Collections;
 import org.apache.maven.shared.invoker.*;
 
-
+import java.util.Date;
 import java.util.HashMap;
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -37,6 +37,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.io.FileUtils;
 
 //Java stuff
 
@@ -58,9 +59,16 @@ private HttpClient httpClient;
     public ContinuousIntegration() {
         this.httpClient =HttpClient.newHttpClient() ;
     }
-    public String updateGitHubStatus(String status, String sha, String description) {
+    public String updateGitHubStatus(boolean status, String sha, String description) {
+            String status_string="";
+            if(status){
+                status_string= "success";
+            }
+            else
+            {status_string="failure";}
+
             JSONObject requestBody = new JSONObject()
-                    .put("state", status)
+                    .put("state", status_string)
                     .put("description", description);
 
             HttpRequest request = HttpRequest.newBuilder()
@@ -74,6 +82,7 @@ private HttpClient httpClient;
             try {
                 HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
                 JSONObject jsonResponse = new JSONObject(response.body());
+                System.out.println(jsonResponse.toString());
                 return jsonResponse.getString("state");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -94,13 +103,14 @@ private HttpClient httpClient;
                 .setURI(repoUrl)
                 .setDirectory(new File(directoryPath))
                 .call();
-    
+
             // Checkout the specific commit
             git.checkout().setName(commitId).call();
     
             git.close();
-        } catch (GitAPIException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -135,7 +145,7 @@ private HttpClient httpClient;
 
     }
 
-
+    
     public boolean compileMavenProject(String projectDirectory) {
         try {
             // command to compile mvn program
@@ -170,27 +180,7 @@ private HttpClient httpClient;
         }
     }
 
-    public void handle(String target,
-                       Request baseRequest,
-                       HttpServletRequest request,
-                       HttpServletResponse response)
-        throws IOException, ServletException
-    {
-        response.setContentType("text/html;charset=utf-8");
-        response.setStatus(HttpServletResponse.SC_OK);
-        baseRequest.setHandled(true);
-
-        System.out.println(target);
-
-
-
-        // here you do all the continuous integration tasks
-        // for example
-        // 1st clone your repository
-        // 2nd compile the code
-        response.getWriter().println("CI job done");
-
-    }
+    
 
 	/**
 	 * Sends an email notification to the committer's email account when a commit occurs.
@@ -200,11 +190,11 @@ private HttpClient httpClient;
 	 *                          - "commit_id": The ID of the commit.
 	 *                          - "clone_url": The URL of the repository where the commit occurred.
 	 *                          - "email": The email address of the committer.
-	 * @param compileStatus A boolean indicating the status of the compilation process.
+	 * @param testStatus A boolean indicating the status of the test process.
 	 *                      True indicates a successful compilation, false indicates a failure.
 	 * @return true if the email notification was successfully sent; otherwise, false.
 	 */
-	public boolean sendEmailNotification(HashMap<String, String> requestData, boolean compileStatus) {
+	public boolean sendEmailNotification(HashMap<String, String> requestData, boolean testStatus) {
 		final String username = "group26kth@gmail.com";
 		final String password = "tlsf nrys dquv mpce ";
 
@@ -233,9 +223,9 @@ private HttpClient httpClient;
 			message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toUser));
 			message.setSubject("Current state update");
 
-			if (compileStatus) {
+			if (testStatus) {
 				message.setText("The latest commit resulted in: SUCCESS \n" + "Commit Id: " + headCommitId + "\n" + "Commit message: " + commitMessage);
-			} else if (!compileStatus) {
+			} else if (!testStatus) {
 				message.setText("The latest commit resulted in: FAILURE\n" + "Commit Id: " + headCommitId + "\n" + "Commit message: " + commitMessage);
 			} else {
 				message.setText("Error, issue unknown" + "Commit Id: " + headCommitId + "\n" + "Commit message: " + commitMessage);
@@ -258,6 +248,7 @@ private HttpClient httpClient;
 			map.put("error", "no head_commit in the request payload");
 			return map;
 		}		
+		map.put("repo_name", requestBody.getJSONObject("repository").getString("name")); 
 		map.put("clone_url", requestBody.getJSONObject("repository").getString("clone_url")); 
 		map.put("commit_id", requestBody.getJSONObject("head_commit").getString("id")); 
 		map.put("email", requestBody.getJSONObject("head_commit").getJSONObject("committer").getString("email")); 
@@ -298,7 +289,72 @@ private HttpClient httpClient;
 	public boolean saveToBuildHistory(String commitId, String buildLogs, String buildDate){
 		return saveToBuildHistory(commitId, buildLogs, buildDate, "build_history");
 	}
-	
+
+    
+	public void handle(String target,
+                       Request baseRequest,
+                       HttpServletRequest request,
+                       HttpServletResponse response)
+        throws IOException, ServletException
+    {
+        response.setContentType("text/html;charset=utf-8");
+        response.setStatus(HttpServletResponse.SC_OK);
+        baseRequest.setHandled(true);
+
+        System.out.println(target);
+        
+        HashMap<String, String> data = processRequestData(request);
+        if(data.containsKey("error")){
+            return;
+        }
+        System.out.println("Step 1");
+        System.out.println(data.get("clone_url"));
+        System.out.println(data.get("commit_id"));
+        String repo_path = "./" + data.get("repo_name"); 
+        // Clone repo and checkout
+        cloneAndCheckout(data.get("clone_url"), data.get("commit_id"), repo_path);
+        
+        System.out.println("Step 2");
+        // Compile and run tests
+        boolean compileStatus = compileMavenProject(repo_path);
+        System.out.println("Step 3");
+        if(compileStatus == false){
+            // Exit with failure
+        }    
+        boolean testStatus;    
+        try{
+            testStatus = runTests(repo_path);
+        }catch(Exception e){
+            e.printStackTrace();
+            return;
+        }
+        Date buildDate = new Date();
+        
+
+        // Set github status, email notification and build history
+        System.out.println("Step 4:");
+        sendEmailNotification(data, testStatus);
+        
+        System.out.println("Step 5");
+        updateGitHubStatus(testStatus, data.get("commit_id"), "CI server status");
+        
+        System.out.println("Step 6:");
+        saveToBuildHistory(data.get("commit_id"), "LOGS", buildDate.toString());
+        // here you do all the continuous integration tasks
+        // for example
+        // 1st clone your repository
+        // 2nd compile the code
+
+        try {
+            FileUtils.deleteDirectory(new File(repo_path));            
+        } catch (IOException e) {
+            System.err.println("An error occurred during directory deletion: " + e.getMessage());
+        }
+
+        response.getWriter().println("CI job done");
+
+    }
+
     // used to start the CI server in command line
     public static void main(String[] args) throws Exception
     {

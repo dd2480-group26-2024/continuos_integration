@@ -70,12 +70,13 @@ public class MavenTest {
 		ContinuousIntegration ci = new ContinuousIntegration();
 		HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
 		// Simplified GitHub request payload
-		String payload = "{\"repository\": {\"clone_url\": \"https://github.com/dd2480-group26-2024/continuous_integration.git\"},\"head_commit\": {\"id\": \"545c38c57a26677c764a657fb42f2186c34c8bac\",\"message\": \"edited the sendEmailNotification method and removed the newly added method\",\"timestamp\": \"2024-02-12T16:47:59+01:00\",\"committer\": {\"email\": \"robin.yurt@hotmail.com\",}}}";
+		String payload = "{\"repository\": {\"clone_url\": \"https://github.com/dd2480-group26-2024/continuous_integration.git\" , \"name\": \"repo name\"},\"head_commit\": {\"id\": \"545c38c57a26677c764a657fb42f2186c34c8bac\",\"message\": \"edited the sendEmailNotification method and removed the newly added method\",\"timestamp\": \"2024-02-12T16:47:59+01:00\",\"committer\": {\"email\": \"robin.yurt@hotmail.com\",}}}";
 		HashMap<String,String> expected = new HashMap<>();			
 		expected.put("clone_url", "https://github.com/dd2480-group26-2024/continuous_integration.git"); 
 		expected.put("commit_id", "545c38c57a26677c764a657fb42f2186c34c8bac"); 
 		expected.put("email", "robin.yurt@hotmail.com"); 
 		expected.put("timestamp", "2024-02-12T16:47:59+01:00"); 
+		expected.put("repo_name", "repo name"); 
 		expected.put("commit_message", "edited the sendEmailNotification method and removed the newly added method"); 
 		Mockito.when(request.getParameter("payload")).thenReturn(payload);
 		HashMap<String,String> result = ci.processRequestData(request);
@@ -109,7 +110,7 @@ public class MavenTest {
 
         ContinuousIntegration ci = new ContinuousIntegration(httpClientMock);
 
-        String result = ci.updateGitHubStatus("success", "abc123", "Passed");
+        String result = ci.updateGitHubStatus(true, "abc123", "Passed");
 
         assertEquals("success", result);
 
