@@ -61,6 +61,18 @@ private HttpClient httpClient;
     public ContinuousIntegration() {
         this.httpClient =HttpClient.newHttpClient() ;
     }
+
+    /**
+     * Updates the status of a specific commit on GitHub based on the provided status.
+     *
+     * @param status      A boolean indicating the success or failure of the operation related to the commit.
+     *                    True represents a success, while false represents a failure.
+     * @param sha         The SHA hash of the commit for which the status is being updated.
+     * @param description A brief description that the CI server has commented.
+     * @return A string indicating the result of the update operation. Returns the state ("success" or "failure")
+     *         if the update is successful. In case of an error during the update process, returns a string starting
+     *         with "Error: " followed by the error message.
+     */
     public String updateGitHubStatus(boolean status, String sha, String description) {
             String status_string="";
             if(status){
@@ -145,7 +157,14 @@ private HttpClient httpClient;
 
     }
 
-    
+    /**
+     * Compiles a Maven project located in a specified directory.
+     *
+     * @param projectDirectory The path to the directory containing the Maven project. This directory
+     *                         should contain a 'pom.xml' file.
+     * @return true if the project compiles successfully without errors; false if the compilation
+     *         process fails or encounters errors.
+     */
     public boolean compileMavenProject(String projectDirectory) {
         try {
             // command to compile mvn program
