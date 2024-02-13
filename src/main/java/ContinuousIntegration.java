@@ -156,7 +156,7 @@ public class ContinuousIntegration extends AbstractHandler
 			String headCommitId = requestData.get("commit_id");
 			String repoURL = requestData.get("clone_url");
 			String toUser = requestData.get("email");
-			String committMessage = requestData.get("commit_message");
+			String commitMessage = requestData.get("commit_message");
 
 			Message message = new MimeMessage(session);
 			message.setFrom(new InternetAddress("group26kth@gmail.com"));
@@ -164,11 +164,11 @@ public class ContinuousIntegration extends AbstractHandler
 			message.setSubject("Current state update");
 
 			if (compileStatus) {
-				message.setText("The latest commit resulted in: SUCCESS \n" + headCommitId + "\n" + committMessage);
+				message.setText("The latest commit resulted in: SUCCESS \n" + "Commit Id: " + headCommitId + "\n" + "Commit message: " + committMessage);
 			} else if (!compileStatus) {
-				message.setText("The latest commit resulted in: FAILURE\n" + headCommitId + "\n" + committMessage);
+				message.setText("The latest commit resulted in: FAILURE\n" + "Commit Id: " + headCommitId + "\n" + "Commit message: " + committMessage);
 			} else {
-				message.setText("Error, issue unknown" + headCommitId);
+				message.setText("Error, issue unknown" + "Commit Id: " + headCommitId + "\n" + "Commit message: " + committMessage);
 			}
 			Transport.send(message);
 			System.out.println("Message has been sent");
