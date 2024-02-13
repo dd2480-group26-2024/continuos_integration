@@ -82,6 +82,7 @@ public class MavenTest {
 		assertTrue(result.equals(expected));
 	}
 
+
     //"src/test/testProject"
     @Test
     public void testRepoTesting(){
@@ -142,6 +143,51 @@ public class MavenTest {
         }
     }
 	
+	@Test
+	public void sendEmailNotificationBuildSuccess() {
+		ContinuousIntegration ci = new ContinuousIntegration();
+		
+		// Mock the request data
+		HashMap<String, String> requestData = new HashMap<>();
+		requestData.put("commit_id", "ecff3ba2c436e2fa743b149d33b906ed74370620");
+		requestData.put("clone_url", "https://github.com/robinho46/sendMailTestRepo.git");
+		requestData.put("email", "robin.yurt@hotmail.com"); // Replace with the recipient's email address
+
+		// Call the method and assert the result
+		assertTrue(ci.sendEmailNotification(requestData, true));
+	}
+	
+	@Test
+	public void sendEmailNotificationBuildFailure(){
+		ContinuousIntegration ci = new ContinuousIntegration();
+		
+		// Mock the request data
+		HashMap<String, String> requestData = new HashMap<>();
+		requestData.put("commit_id", "ecff3ba2c436e2fa743b149d33b906ed74370620");
+		requestData.put("clone_url", "https://github.com/robinho46/sendMailTestRepo.git");
+		requestData.put("email", "robin.yurt@hotmail.com"); // Replace with the recipient's email address
+
+		// Call the method and assert the result
+		assertTrue(ci.sendEmailNotification(requestData, false));
+	}
+	
+	@Test
+	public void sendEmailNotificationBuildWithCommitMessage(){
+		ContinuousIntegration ci = new ContinuousIntegration();
+		
+		// Mock the request data
+		HashMap<String, String> requestData = new HashMap<>();
+		requestData.put("commit_id", "ecff3ba2c436e2fa743b149d33b906ed74370620");
+		requestData.put("clone_url", "https://github.com/robinho46/sendMailTestRepo.git");
+		requestData.put("email", "robin.yurt@hotmail.com"); // Replace with the recipient's email address
+		requestData.put("commit_message", "added a main.cpp file for fun :D");
+		
+		// Call the method and assert the result
+		assertTrue(ci.sendEmailNotification(requestData, false));
+	}
+
+
+
 	@TempDir
 	Path buildHistDir;
 	@Test
