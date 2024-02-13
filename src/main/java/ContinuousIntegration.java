@@ -84,7 +84,6 @@ private HttpClient httpClient;
             try {
                 HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
                 JSONObject jsonResponse = new JSONObject(response.body());
-                System.out.println(jsonResponse.toString());
                 return jsonResponse.getString("state");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -112,7 +111,6 @@ private HttpClient httpClient;
             git.close();
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println(e.getMessage());
         }
     }
 
