@@ -63,6 +63,11 @@
 			<artifactId>commons-io</artifactId>
 			<version>2.8.0</version> <!-- Check for the latest version -->
 		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.8.0</version> <!-- Check for the latest version -->
+		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
 		<dependency>
@@ -114,10 +119,10 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
 				<configuration>
-						  <systemPropertyVariables>
+						<systemPropertyVariables>
 							<maven.home>${maven.home}</maven.home>
-						  </systemPropertyVariables>
-				 </configuration>
+						</systemPropertyVariables>
+				</configuration>
             </plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

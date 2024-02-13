@@ -53,6 +53,8 @@ public class ContinuousIntegration extends AbstractHandler
 {
 private HttpClient httpClient;
     private static String token="";
+    private static String logInfo="";
+
     public ContinuousIntegration(HttpClient httpClient) {
         this.httpClient = httpClient;
     }
@@ -82,7 +84,6 @@ private HttpClient httpClient;
             try {
                 HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
                 JSONObject jsonResponse = new JSONObject(response.body());
-                System.out.println(jsonResponse.toString());
                 return jsonResponse.getString("state");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -110,7 +111,6 @@ private HttpClient httpClient;
             git.close();
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println(e.getMessage());
         }
     }
 
@@ -169,6 +169,8 @@ private HttpClient httpClient;
             }
     
             while ((tempLine = outputError.readLine()) != null) {
+
+                logInfo+=tempLine+"\n";
                 if (tempLine.contains("[ERROR]")) {
                     projectWorking = false;
                 }
@@ -231,7 +233,6 @@ private HttpClient httpClient;
 				message.setText("Error, issue unknown" + "Commit Id: " + headCommitId + "\n" + "Commit message: " + commitMessage);
 			}
 			Transport.send(message);
-			System.out.println("Message has been sent");
 			return true;
 		} catch (MessagingException e) {
 			e.printStackTrace();
@@ -300,24 +301,17 @@ private HttpClient httpClient;
         response.setContentType("text/html;charset=utf-8");
         response.setStatus(HttpServletResponse.SC_OK);
         baseRequest.setHandled(true);
-
-        System.out.println(target);
         
         HashMap<String, String> data = processRequestData(request);
         if(data.containsKey("error")){
             return;
         }
-        System.out.println("Step 1");
-        System.out.println(data.get("clone_url"));
-        System.out.println(data.get("commit_id"));
         String repo_path = "./" + data.get("repo_name"); 
         // Clone repo and checkout
         cloneAndCheckout(data.get("clone_url"), data.get("commit_id"), repo_path);
         
-        System.out.println("Step 2");
         // Compile and run tests
         boolean compileStatus = compileMavenProject(repo_path);
-        System.out.println("Step 3");
         if(compileStatus == false){
             // Exit with failure
         }    
@@ -332,18 +326,12 @@ private HttpClient httpClient;
         
 
         // Set github status, email notification and build history
-        System.out.println("Step 4:");
         sendEmailNotification(data, testStatus);
         
-        System.out.println("Step 5");
         updateGitHubStatus(testStatus, data.get("commit_id"), "CI server status");
         
-        System.out.println("Step 6:");
-        saveToBuildHistory(data.get("commit_id"), "LOGS", buildDate.toString());
-        // here you do all the continuous integration tasks
-        // for example
-        // 1st clone your repository
-        // 2nd compile the code
+        saveToBuildHistory(data.get("commit_id"), logInfo, buildDate.toString());
+        
 
         try {
             FileUtils.deleteDirectory(new File(repo_path));            
@@ -352,7 +340,6 @@ private HttpClient httpClient;
         }
 
         response.getWriter().println("CI job done");
-
     }
 
     // used to start the CI server in command line
