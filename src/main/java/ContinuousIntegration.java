@@ -1,6 +1,10 @@
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.io.InputStreamReader;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -29,6 +33,37 @@ import java.util.HashMap;
 
 public class ContinuousIntegration extends AbstractHandler
 {
+private HttpClient httpClient;
+    private static String token="";
+    public ContinuousIntegration(HttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
+    public ContinuousIntegration() {
+        this.httpClient =HttpClient.newHttpClient() ;
+    }
+    public String updateGitHubStatus(String status, String sha, String description) {
+            JSONObject requestBody = new JSONObject()
+                    .put("state", status)
+                    .put("description", description);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.github.com/repos/dd2480-group26-2024/continuous_integration/statuses/" + sha))
+                    .header("Authorization", "token " + token)
+                    .header("Accept", "application/vnd.github.v3+json")
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()))
+                    .build();
+
+            try {
+                HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+                JSONObject jsonResponse = new JSONObject(response.body());
+                return jsonResponse.getString("state");
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "Error: " + e.getMessage();
+            }
+        }
+
     /**
      * 
      * @param repoUrl the URL of the repository
@@ -122,6 +157,14 @@ public class ContinuousIntegration extends AbstractHandler
     // used to start the CI server in command line
     public static void main(String[] args) throws Exception
     {
+    if (args.length > 0) {
+        token = args[0];
+    }
+    else{
+        System.err.println("NO TOKEN ");
+        return;
+    }
+
         Server server = new Server(8026);
         server.setHandler(new ContinuousIntegration()); 
         server.start();
