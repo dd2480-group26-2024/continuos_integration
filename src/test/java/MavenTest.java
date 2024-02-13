@@ -186,7 +186,7 @@ public class MavenTest {
 		assertTrue(ci.sendEmailNotification(requestData, false));
 	}
 
-}
+
 
 	@TempDir
 	Path buildHistDir;
