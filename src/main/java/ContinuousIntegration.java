@@ -260,7 +260,14 @@ private HttpClient httpClient;
 	}
 
 	
-	// Extract data from GitHub's request and return a HashMap<String, String> with the data required for the CI server
+	/**
+     * Processes the request data from a request, extracting information related to a git commit.
+     * 
+     * @param request   The HttpServletRequest from GitHub's webhook, which payload should be extracted.
+     * 
+     * @return          A HashMap containing the commit information.
+     *  The keys in the map include "repo_name", "clone_url", "commit_id", "email", "timestamp", and "commit_message". Or "error" if no head commit is found.
+     */
 	public HashMap<String,String> processRequestData(HttpServletRequest request){
 		JSONObject requestBody = new JSONObject(request.getParameter("payload"));
 		HashMap<String,String> map = new HashMap<>();		
