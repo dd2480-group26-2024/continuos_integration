@@ -284,7 +284,19 @@ private HttpClient httpClient;
 		return map;
 	}
 	
-	// Save build info in a build history
+	/**
+     * Add a new build to the build history.
+     * 
+     * Creates a new build HTML file with build information, and add a link to it in the build history.
+     * 
+     * @param commitId      String id of head commit
+     * @param buildLogs     String logs from commit compilation
+     * @param buildDate     String date of the build of the commit
+     * @param path          String path to the build history directory
+     * 
+     * @return              boolean - true if there is no IOException raised, false otherwise
+     *  
+     */
 	public boolean saveToBuildHistory(String commitId, String buildLogs, String buildDate, String path){
 		HashMap<String, String> buildData = new HashMap<>();
 		buildData.put("$commit_id", commitId);
@@ -313,6 +325,18 @@ private HttpClient httpClient;
 		return true;
 	}
 	
+	/**
+     * Add a new build to the build history.
+     * 
+     * Creates a new build HTML file with build information, and add a link to it in the build history.
+     * Uses the default directory "./build_history".
+     * 
+     * @param commitId      String id of head commit
+     * @param buildLogs     String logs from commit compilation
+     * @param buildDate     String date of the build of the commit
+     * 
+     * @return              boolean - true if there is no IOException raised, false otherwise       
+     */
 	public boolean saveToBuildHistory(String commitId, String buildLogs, String buildDate){
 		return saveToBuildHistory(commitId, buildLogs, buildDate, "build_history");
 	}
