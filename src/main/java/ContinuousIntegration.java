@@ -20,6 +20,13 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.nio.file.Path;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.apache.commons.lang3.StringUtils;
 
 //Java stuff
 
@@ -153,7 +160,40 @@ private HttpClient httpClient;
 		JSONObject requestBody = new JSONObject(request.getParameter("payload"));
 		return requestBody;
 	}
- 
+	
+	// Save build info in a build history
+	public boolean saveToBuildHistory(String commitId, String buildLogs, String buildDate, String path){
+		HashMap<String, String> buildData = new HashMap<>();
+		buildData.put("$commit_id", commitId);
+		buildData.put("$build_date", buildDate);
+		buildData.put("$build_logs", buildLogs);
+		
+		try{
+			File input = new File(path+"/index.html");
+			Document doc = Jsoup.parse(input, "UTF-8");
+			Element body = doc.body();
+			body.appendElement("a")
+				.attr("href", "builds/"+commitId+".html")
+				.text(commitId + "\t|\t" + buildDate);
+			body.appendElement("br");
+
+			Files.write(Paths.get(path+"/index.html"), doc.html().getBytes());
+			Path templatePath = Paths.get(path+"/builds/_template.html");
+			Path newBuildPath = Paths.get(path+"/builds/"+commitId+".html");
+			String templateContent = new String(Files.readAllBytes(templatePath));
+			String modifiedContent = StringUtils.replaceEach(templateContent, buildData.keySet().toArray(new String[0]), buildData.values().toArray(new String[0]));
+			Files.write(newBuildPath, modifiedContent.getBytes());
+		} catch(IOException e){
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean saveToBuildHistory(String commitId, String buildLogs, String buildDate){
+		return saveToBuildHistory(commitId, buildLogs, buildDate, "build_history");
+	}
+	
     // used to start the CI server in command line
     public static void main(String[] args) throws Exception
     {

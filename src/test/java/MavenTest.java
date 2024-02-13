@@ -24,8 +24,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.util.HashMap;
+import java.io.File; 
 
 public class MavenTest {
 
@@ -120,4 +120,26 @@ public class MavenTest {
             fail("Test failed due to exception: " + e.getMessage());
         }
     }
+	
+	@TempDir
+	Path buildHistDir;
+	@Test
+	public void testSaveToBuildHistory(){
+		Path buildDir = buildHistDir.resolve("builds");
+		Path templatePath = buildHistDir.resolve("builds/_template.html");
+		Path indexPath = buildHistDir.resolve("index.html");
+		try {
+			Files.createDirectories(buildDir);
+            Files.createFile(templatePath);
+            Files.createFile(indexPath);
+			byte[] indexHtml = ("<!doctype html> <html lang=\"en\">  <head>   <meta charset=\"UTF-8\">   <title>Build History</title>  </head>  <body>   <h1>Build History</h1>   <br>  </body> </html>").getBytes();
+			byte[] templateHtml = ("<!doctype html> <html lang=\"en\">  <head>   <meta charset=\"UTF-8\">   <title>Build History</title>  </head>  <body>   <h1>Build Information</h1>   <p>Commit Hash: $commit_id</p>   <p>Build Date: $build_date</p>   <h1>Build Logs</h1>   <div> 	<textarea rows=\"30\" wrap=\"off\" style=\"width: 90%; overflow-x: auto;\">$build_logs</textarea>   </div>  </body> </html> ").getBytes();
+			Files.write(indexPath, indexHtml);
+			Files.write(templatePath, templateHtml);
+        } catch (IOException e) {
+			fail("Test failed due to exception: " + e.getMessage());
+        }
+		ContinuousIntegration ci = new ContinuousIntegration();
+		assertTrue(ci.saveToBuildHistory("COMMIT_ID", "Some logs\n on multiple\n lines", "2024-02-13", buildHistDir.toString()));
+	}
 }
