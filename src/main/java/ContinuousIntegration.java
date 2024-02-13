@@ -111,13 +111,6 @@ public class ContinuousIntegration extends AbstractHandler
         // for example
         // 1st clone your repository
         // 2nd compile the code
-
-        // Testing email notification
-		HashMap<String, String> requestData = processRequestData(request);
-		//Should use the compileMavenProject when it is fully working
-		boolean compileStatus = true; // Example status, replace with your logic
-		sendEmailNotification(requestData, compileStatus);
-
         response.getWriter().println("CI job done");
 
     }
@@ -178,21 +171,6 @@ public class ContinuousIntegration extends AbstractHandler
 		}
 		return false;
 	}
-
-  	// Returns a String[2], the first element is the clone_url, the second is the commit id
-	public String[] processRequestData(HttpServletRequest request){
-		String[] reqData = new String[2];
-		JSONObject requestBody = new JSONObject();
-		try{
-			requestBody = new JSONObject(request.getReader().lines().collect(Collectors.joining(System.lineSeparator())));
-		}catch(IOException e){
-			e.printStackTrace();
-		}
-		if (requestBody.has("head_commit")) {
-			reqData[0] = requestBody.getJSONObject("repository").getString("clone_url");
-			reqData[1] = requestBody.getJSONObject("head_commit").getString("id");
-		}
-		return reqData;
 
 	// Extract data from GitHub's request and return a JSONObject
 	public JSONObject processRequestData(HttpServletRequest request){
