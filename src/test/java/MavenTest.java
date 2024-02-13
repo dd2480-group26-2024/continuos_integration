@@ -24,8 +24,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.util.HashMap;
+import java.io.File; 
 
 public class MavenTest {
 
@@ -70,12 +70,33 @@ public class MavenTest {
 		ContinuousIntegration ci = new ContinuousIntegration();
 		HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
 		// Simplified GitHub request payload
-		String payload = "{\"repository\": {\"clone_url\": \"https://github.com/dd2480-group26-2024/continuous_integration.git\"},\"head_commit\": {\"id\": \"22473f129585cad9e0662860d1cc19c9d81e4081\" }}";
-		JSONObject expected = new JSONObject(payload);
+		String payload = "{\"repository\": {\"clone_url\": \"https://github.com/dd2480-group26-2024/continuous_integration.git\"},\"head_commit\": {\"id\": \"545c38c57a26677c764a657fb42f2186c34c8bac\",\"message\": \"edited the sendEmailNotification method and removed the newly added method\",\"timestamp\": \"2024-02-12T16:47:59+01:00\",\"committer\": {\"email\": \"robin.yurt@hotmail.com\",}}}";
+		HashMap<String,String> expected = new HashMap<>();			
+		expected.put("clone_url", "https://github.com/dd2480-group26-2024/continuous_integration.git"); 
+		expected.put("commit_id", "545c38c57a26677c764a657fb42f2186c34c8bac"); 
+		expected.put("email", "robin.yurt@hotmail.com"); 
+		expected.put("timestamp", "2024-02-12T16:47:59+01:00"); 
+		expected.put("commit_message", "edited the sendEmailNotification method and removed the newly added method"); 
 		Mockito.when(request.getParameter("payload")).thenReturn(payload);
-		JSONObject result = ci.processRequestData(request);
-		assertTrue(result.similar(expected));
+		HashMap<String,String> result = ci.processRequestData(request);
+		assertTrue(result.equals(expected));
 	}
+
+
+    //"src/test/testProject"
+    @Test
+    public void testRepoTesting(){
+        // run tests in new directory
+        ContinuousIntegration ci = new ContinuousIntegration();
+        try{
+            boolean res = ci.runTests("/src/test/TestMavenProject/testProject");
+            assertTrue(res);
+        }catch (Exception e) {
+            fail("Test failed due to exception: " + e.getMessage());
+        }
+
+    }
+
 
     @Test
     public void testUpdateGitHubStatus() throws Exception {
@@ -165,4 +186,27 @@ public class MavenTest {
 		assertTrue(ci.sendEmailNotification(requestData, false));
 	}
 
+}
+
+	@TempDir
+	Path buildHistDir;
+	@Test
+	public void testSaveToBuildHistory(){
+		Path buildDir = buildHistDir.resolve("builds");
+		Path templatePath = buildHistDir.resolve("builds/_template.html");
+		Path indexPath = buildHistDir.resolve("index.html");
+		try {
+			Files.createDirectories(buildDir);
+            Files.createFile(templatePath);
+            Files.createFile(indexPath);
+			byte[] indexHtml = ("<!doctype html> <html lang=\"en\">  <head>   <meta charset=\"UTF-8\">   <title>Build History</title>  </head>  <body>   <h1>Build History</h1>   <br>  </body> </html>").getBytes();
+			byte[] templateHtml = ("<!doctype html> <html lang=\"en\">  <head>   <meta charset=\"UTF-8\">   <title>Build History</title>  </head>  <body>   <h1>Build Information</h1>   <p>Commit Hash: $commit_id</p>   <p>Build Date: $build_date</p>   <h1>Build Logs</h1>   <div> 	<textarea rows=\"30\" wrap=\"off\" style=\"width: 90%; overflow-x: auto;\">$build_logs</textarea>   </div>  </body> </html> ").getBytes();
+			Files.write(indexPath, indexHtml);
+			Files.write(templatePath, templateHtml);
+        } catch (IOException e) {
+			fail("Test failed due to exception: " + e.getMessage());
+        }
+		ContinuousIntegration ci = new ContinuousIntegration();
+		assertTrue(ci.saveToBuildHistory("COMMIT_ID", "Some logs\n on multiple\n lines", "2024-02-13", buildHistDir.toString()));
+	}
 }

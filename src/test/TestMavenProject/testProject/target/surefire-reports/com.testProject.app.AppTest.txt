@@ -1,0 +1,8 @@
+-------------------------------------------------------------------------------
+Test set: com.testProject.app.AppTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.023 s <<< FAILURE! - in com.testProject.app.AppTest
+shouldAnswerWithTrue(com.testProject.app.AppTest)  Time elapsed: 0.003 s  <<< FAILURE!
+java.lang.AssertionError
+	at com.testProject.app.AppTest.shouldAnswerWithTrue(AppTest.java:18)
+

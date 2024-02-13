@@ -18,12 +18,25 @@ import java.io.BufferedReader;
 import java.io.File;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.json.JSONObject;
+
  
 import javax.mail.*;
 import javax.mail.internet.*;
 import java.util.Properties;
 import java.util.stream.Collectors;
+
+import java.util.Collections;
+import org.apache.maven.shared.invoker.*;
+
+
 import java.util.HashMap;
+import java.nio.file.Path;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.apache.commons.lang3.StringUtils;
 
 //Java stuff
 
@@ -91,6 +104,38 @@ private HttpClient httpClient;
         }
     }
 
+
+    public static boolean runTests(String directoryPath) throws Exception{
+        File path = new File(directoryPath);
+        InvocationRequest request = new DefaultInvocationRequest();
+        request.setBaseDirectory( path );
+        request.setBatchMode( true );  // sets batch mode so that the terminal doesn't stall and ask for input
+        request.setGoals( Collections.singletonList( "test" ) );
+        
+        String MAVEN_HOME = System.getenv("MAVEN_HOME");
+        if (MAVEN_HOME == null){
+            String errMsg = "\nException error due to MAVEN_HOME environment variable not set \n"
+                            + "Try adding it to your ~/.bashrc, ~/.profile or /etc/environment file \n"
+                            + "export MAVEN_HOME=<path> \n"
+                            + "tip: you can find the path by entering \"mvn --version\"\n";
+
+            throw new Exception(errMsg);
+        }
+
+        Invoker invoker = new DefaultInvoker();
+        invoker.setMavenHome(new File (MAVEN_HOME));
+        try{
+            InvocationResult result = invoker.execute( request );
+
+        }catch(MavenInvocationException e){
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+
+    }
+
+
     public boolean compileMavenProject(String projectDirectory) {
         try {
             // command to compile mvn program
@@ -124,9 +169,6 @@ private HttpClient httpClient;
             return false;
         }
     }
-
-
-
 
     public void handle(String target,
                        Request baseRequest,
@@ -192,11 +234,11 @@ private HttpClient httpClient;
 			message.setSubject("Current state update");
 
 			if (compileStatus) {
-				message.setText("The latest commit resulted in: SUCCESS \n" + "Commit Id: " + headCommitId + "\n" + "Commit message: " + committMessage);
+				message.setText("The latest commit resulted in: SUCCESS \n" + "Commit Id: " + headCommitId + "\n" + "Commit message: " + commitMessage);
 			} else if (!compileStatus) {
-				message.setText("The latest commit resulted in: FAILURE\n" + "Commit Id: " + headCommitId + "\n" + "Commit message: " + committMessage);
+				message.setText("The latest commit resulted in: FAILURE\n" + "Commit Id: " + headCommitId + "\n" + "Commit message: " + commitMessage);
 			} else {
-				message.setText("Error, issue unknown" + "Commit Id: " + headCommitId + "\n" + "Commit message: " + committMessage);
+				message.setText("Error, issue unknown" + "Commit Id: " + headCommitId + "\n" + "Commit message: " + commitMessage);
 			}
 			Transport.send(message);
 			System.out.println("Message has been sent");
@@ -207,12 +249,56 @@ private HttpClient httpClient;
 		return false;
 	}
 
-	// Extract data from GitHub's request and return a JSONObject
-	public JSONObject processRequestData(HttpServletRequest request){
+	
+	// Extract data from GitHub's request and return a HashMap<String, String> with the data required for the CI server
+	public HashMap<String,String> processRequestData(HttpServletRequest request){
 		JSONObject requestBody = new JSONObject(request.getParameter("payload"));
-		return requestBody;
+		HashMap<String,String> map = new HashMap<>();		
+		if(!requestBody.has("head_commit")){
+			map.put("error", "no head_commit in the request payload");
+			return map;
+		}		
+		map.put("clone_url", requestBody.getJSONObject("repository").getString("clone_url")); 
+		map.put("commit_id", requestBody.getJSONObject("head_commit").getString("id")); 
+		map.put("email", requestBody.getJSONObject("head_commit").getJSONObject("committer").getString("email")); 
+		map.put("timestamp", requestBody.getJSONObject("head_commit").getString("timestamp")); 
+		map.put("commit_message", requestBody.getJSONObject("head_commit").getString("message")); 
+		return map;
 	}
- 
+	
+	// Save build info in a build history
+	public boolean saveToBuildHistory(String commitId, String buildLogs, String buildDate, String path){
+		HashMap<String, String> buildData = new HashMap<>();
+		buildData.put("$commit_id", commitId);
+		buildData.put("$build_date", buildDate);
+		buildData.put("$build_logs", buildLogs);
+		
+		try{
+			File input = new File(path+"/index.html");
+			Document doc = Jsoup.parse(input, "UTF-8");
+			Element body = doc.body();
+			body.appendElement("a")
+				.attr("href", "builds/"+commitId+".html")
+				.text(commitId + "\t|\t" + buildDate);
+			body.appendElement("br");
+
+			Files.write(Paths.get(path+"/index.html"), doc.html().getBytes());
+			Path templatePath = Paths.get(path+"/builds/_template.html");
+			Path newBuildPath = Paths.get(path+"/builds/"+commitId+".html");
+			String templateContent = new String(Files.readAllBytes(templatePath));
+			String modifiedContent = StringUtils.replaceEach(templateContent, buildData.keySet().toArray(new String[0]), buildData.values().toArray(new String[0]));
+			Files.write(newBuildPath, modifiedContent.getBytes());
+		} catch(IOException e){
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean saveToBuildHistory(String commitId, String buildLogs, String buildDate){
+		return saveToBuildHistory(commitId, buildLogs, buildDate, "build_history");
+	}
+	
     // used to start the CI server in command line
     public static void main(String[] args) throws Exception
     {
@@ -225,7 +311,7 @@ private HttpClient httpClient;
     }
 
         Server server = new Server(8026);
-        server.setHandler(new ContinuousIntegration()); 
+        server.setHandler(new ContinuousIntegration());
         server.start();
         server.join();
     }
