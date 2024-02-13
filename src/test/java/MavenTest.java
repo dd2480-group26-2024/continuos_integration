@@ -6,6 +6,11 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,6 +20,9 @@ import org.json.JSONObject;
 import org.mockito.Mockito;
 import javax.servlet.http.HttpServletRequest;
 import java.io.StringReader;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
@@ -68,7 +76,25 @@ public class MavenTest {
 		JSONObject result = ci.processRequestData(request);
 		assertTrue(result.similar(expected));
 	}
-	
+
+    @Test
+    public void testUpdateGitHubStatus() throws Exception {
+
+        HttpClient httpClientMock = mock(HttpClient.class);
+        HttpResponse<Object> httpResponseMock = mock(HttpResponse.class);
+
+        when(httpResponseMock.body()).thenReturn("{\"state\": \"success\"}");
+        when(httpClientMock.send(any(HttpRequest.class), any())).thenReturn(httpResponseMock);
+
+        ContinuousIntegration ci = new ContinuousIntegration(httpClientMock);
+
+        String result = ci.updateGitHubStatus("success", "abc123", "Passed");
+
+        assertEquals("success", result);
+
+        verify(httpClientMock).send(any(HttpRequest.class), any());
+    }
+
     @Test
     public void test_compile_project_true() {
         try {
