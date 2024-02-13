@@ -303,35 +303,17 @@ private HttpClient httpClient;
         response.setContentType("text/html;charset=utf-8");
         response.setStatus(HttpServletResponse.SC_OK);
         baseRequest.setHandled(true);
-<<<<<<< HEAD
-=======
-
-        System.out.println(target);
->>>>>>> e7f8fd9b9ac065352757b81f2420fe724fc0c1c4
         
         HashMap<String, String> data = processRequestData(request);
         if(data.containsKey("error")){
             return;
         }
-<<<<<<< HEAD
-=======
-        System.out.println("Step 1");
-        System.out.println(data.get("clone_url"));
-        System.out.println(data.get("commit_id"));
->>>>>>> e7f8fd9b9ac065352757b81f2420fe724fc0c1c4
         String repo_path = "./" + data.get("repo_name"); 
         // Clone repo and checkout
         cloneAndCheckout(data.get("clone_url"), data.get("commit_id"), repo_path);
         
-<<<<<<< HEAD
         // Compile and run tests
         boolean compileStatus = compileMavenProject(repo_path);
-=======
-        System.out.println("Step 2");
-        // Compile and run tests
-        boolean compileStatus = compileMavenProject(repo_path);
-        System.out.println("Step 3");
->>>>>>> e7f8fd9b9ac065352757b81f2420fe724fc0c1c4
         if(compileStatus == false){
             // Exit with failure
         }    
@@ -346,27 +328,12 @@ private HttpClient httpClient;
         
 
         // Set github status, email notification and build history
-<<<<<<< HEAD
         sendEmailNotification(data, testStatus);
         
         updateGitHubStatus(testStatus, data.get("commit_id"), "CI server status");
         
         saveToBuildHistory(data.get("commit_id"), logInfo, buildDate.toString());
         
-=======
-        System.out.println("Step 4:");
-        sendEmailNotification(data, testStatus);
-        
-        System.out.println("Step 5");
-        updateGitHubStatus(testStatus, data.get("commit_id"), "CI server status");
-        
-        System.out.println("Step 6:");
-        saveToBuildHistory(data.get("commit_id"), "LOGS", buildDate.toString());
-        // here you do all the continuous integration tasks
-        // for example
-        // 1st clone your repository
-        // 2nd compile the code
->>>>>>> e7f8fd9b9ac065352757b81f2420fe724fc0c1c4
 
         try {
             FileUtils.deleteDirectory(new File(repo_path));            
@@ -375,10 +342,6 @@ private HttpClient httpClient;
         }
 
         response.getWriter().println("CI job done");
-<<<<<<< HEAD
-=======
-
->>>>>>> e7f8fd9b9ac065352757b81f2420fe724fc0c1c4
     }
 
     // used to start the CI server in command line
