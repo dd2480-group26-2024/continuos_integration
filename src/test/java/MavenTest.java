@@ -96,7 +96,7 @@ public class MavenTest {
 
     }
 
-}
+
     @Test
     public void testUpdateGitHubStatus() throws Exception {
 
