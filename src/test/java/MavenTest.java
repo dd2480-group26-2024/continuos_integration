@@ -6,14 +6,26 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.json.JSONObject;
 
 import org.mockito.Mockito;
 import javax.servlet.http.HttpServletRequest;
 import java.io.StringReader;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.io.BufferedReader;
-import java.io.IOException;
+import java.util.HashMap;
+import java.io.File; 
 
 public class MavenTest {
 
@@ -58,18 +70,18 @@ public class MavenTest {
 		ContinuousIntegration ci = new ContinuousIntegration();
 		HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
 		// Simplified GitHub request payload
-		String payload = "{\"repository\": {\"clone_url\": \"https://github.com/dd2480-group26-2024/continuous_integration.git\"},\"head_commit\": {\"id\": \"22473f129585cad9e0662860d1cc19c9d81e4081\" }}";
-        StringReader stringReader = new StringReader(payload);
-		BufferedReader reader = new BufferedReader(stringReader);
-		try{
-		Mockito.when(request.getReader()).thenReturn(reader);
-		}catch (IOException e){
-			fail("Test failed due to exception: " + e.getMessage());
-		}
-		String[] data = new String[2];
-		data = ci.processRequestData(request);
-		assertArrayEquals(new String[]{"https://github.com/dd2480-group26-2024/continuous_integration.git","22473f129585cad9e0662860d1cc19c9d81e4081"}, data);
+		String payload = "{\"repository\": {\"clone_url\": \"https://github.com/dd2480-group26-2024/continuous_integration.git\"},\"head_commit\": {\"id\": \"545c38c57a26677c764a657fb42f2186c34c8bac\",\"message\": \"edited the sendEmailNotification method and removed the newly added method\",\"timestamp\": \"2024-02-12T16:47:59+01:00\",\"committer\": {\"email\": \"robin.yurt@hotmail.com\",}}}";
+		HashMap<String,String> expected = new HashMap<>();			
+		expected.put("clone_url", "https://github.com/dd2480-group26-2024/continuous_integration.git"); 
+		expected.put("commit_id", "545c38c57a26677c764a657fb42f2186c34c8bac"); 
+		expected.put("email", "robin.yurt@hotmail.com"); 
+		expected.put("timestamp", "2024-02-12T16:47:59+01:00"); 
+		expected.put("commit_message", "edited the sendEmailNotification method and removed the newly added method"); 
+		Mockito.when(request.getParameter("payload")).thenReturn(payload);
+		HashMap<String,String> result = ci.processRequestData(request);
+		assertTrue(result.equals(expected));
 	}
+
     //"src/test/testProject"
     @Test
     public void testRepoTesting(){
@@ -84,4 +96,71 @@ public class MavenTest {
 
     }
 
+}
+    @Test
+    public void testUpdateGitHubStatus() throws Exception {
+
+        HttpClient httpClientMock = mock(HttpClient.class);
+        HttpResponse<Object> httpResponseMock = mock(HttpResponse.class);
+
+        when(httpResponseMock.body()).thenReturn("{\"state\": \"success\"}");
+        when(httpClientMock.send(any(HttpRequest.class), any())).thenReturn(httpResponseMock);
+
+        ContinuousIntegration ci = new ContinuousIntegration(httpClientMock);
+
+        String result = ci.updateGitHubStatus("success", "abc123", "Passed");
+
+        assertEquals("success", result);
+
+        verify(httpClientMock).send(any(HttpRequest.class), any());
+    }
+
+    @Test
+    public void test_compile_project_true() {
+        try {
+            ContinuousIntegration ci = new ContinuousIntegration();
+
+            // Try to compile the correct project
+            boolean comp=ci.compileMavenProject("src/test/TestMavenProject/mvnProjectCorrect");
+            assertTrue(comp);
+
+        } catch (Exception e) {
+            fail("Test failed due to exception: " + e.getMessage());
+        }
+    }
+    @Test
+    public void test_compile_project_false() {
+        try {
+            ContinuousIntegration ci = new ContinuousIntegration();
+
+            // Try to compile the incorrect project
+            boolean comp=ci.compileMavenProject("src/test/TestMavenProject/mvnProjectIncorrect");
+            assertFalse(comp);
+
+        } catch (Exception e) {
+            fail("Test failed due to exception: " + e.getMessage());
+        }
+    }
+	
+	@TempDir
+	Path buildHistDir;
+	@Test
+	public void testSaveToBuildHistory(){
+		Path buildDir = buildHistDir.resolve("builds");
+		Path templatePath = buildHistDir.resolve("builds/_template.html");
+		Path indexPath = buildHistDir.resolve("index.html");
+		try {
+			Files.createDirectories(buildDir);
+            Files.createFile(templatePath);
+            Files.createFile(indexPath);
+			byte[] indexHtml = ("<!doctype html> <html lang=\"en\">  <head>   <meta charset=\"UTF-8\">   <title>Build History</title>  </head>  <body>   <h1>Build History</h1>   <br>  </body> </html>").getBytes();
+			byte[] templateHtml = ("<!doctype html> <html lang=\"en\">  <head>   <meta charset=\"UTF-8\">   <title>Build History</title>  </head>  <body>   <h1>Build Information</h1>   <p>Commit Hash: $commit_id</p>   <p>Build Date: $build_date</p>   <h1>Build Logs</h1>   <div> 	<textarea rows=\"30\" wrap=\"off\" style=\"width: 90%; overflow-x: auto;\">$build_logs</textarea>   </div>  </body> </html> ").getBytes();
+			Files.write(indexPath, indexHtml);
+			Files.write(templatePath, templateHtml);
+        } catch (IOException e) {
+			fail("Test failed due to exception: " + e.getMessage());
+        }
+		ContinuousIntegration ci = new ContinuousIntegration();
+		assertTrue(ci.saveToBuildHistory("COMMIT_ID", "Some logs\n on multiple\n lines", "2024-02-13", buildHistDir.toString()));
+	}
 }

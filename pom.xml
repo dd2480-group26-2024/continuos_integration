@@ -58,6 +58,18 @@
 			<version>5.10.0</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- Jsoup for HTML build history -->
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.16.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.12.0</version>
+		</dependency>
 
 		<!--JGit for using git in java-->
 		<dependency>
