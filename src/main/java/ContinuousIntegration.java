@@ -18,6 +18,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.json.JSONObject;
+import java.util.Collections;
+import org.apache.maven.shared.invoker.*;
+
 
 import java.util.HashMap;
 import java.nio.file.Path;
@@ -94,6 +97,38 @@ private HttpClient httpClient;
         }
     }
 
+
+    public static boolean runTests(String directoryPath) throws Exception{
+        File path = new File(directoryPath);
+        InvocationRequest request = new DefaultInvocationRequest();
+        request.setBaseDirectory( path );
+        request.setBatchMode( true );  // sets batch mode so that the terminal doesn't stall and ask for input
+        request.setGoals( Collections.singletonList( "test" ) );
+        
+        String MAVEN_HOME = System.getenv("MAVEN_HOME");
+        if (MAVEN_HOME == null){
+            String errMsg = "\nException error due to MAVEN_HOME environment variable not set \n"
+                            + "Try adding it to your ~/.bashrc, ~/.profile or /etc/environment file \n"
+                            + "export MAVEN_HOME=<path> \n"
+                            + "tip: you can find the path by entering \"mvn --version\"\n";
+
+            throw new Exception(errMsg);
+        }
+
+        Invoker invoker = new DefaultInvoker();
+        invoker.setMavenHome(new File (MAVEN_HOME));
+        try{
+            InvocationResult result = invoker.execute( request );
+
+        }catch(MavenInvocationException e){
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+
+    }
+
+
     public boolean compileMavenProject(String projectDirectory) {
         try {
             // command to compile mvn program
@@ -127,7 +162,6 @@ private HttpClient httpClient;
             return false;
         }
     }
-    
     
     
     
@@ -216,7 +250,7 @@ private HttpClient httpClient;
     }
 
         Server server = new Server(8026);
-        server.setHandler(new ContinuousIntegration()); 
+        server.setHandler(new ContinuousIntegration());
         server.start();
         server.join();
     }

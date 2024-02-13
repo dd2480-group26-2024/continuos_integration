@@ -81,6 +81,22 @@ public class MavenTest {
 		HashMap<String,String> result = ci.processRequestData(request);
 		assertTrue(result.equals(expected));
 	}
+
+    //"src/test/testProject"
+    @Test
+    public void testRepoTesting(){
+        // run tests in new directory
+        ContinuousIntegration ci = new ContinuousIntegration();
+        try{
+            boolean res = ci.runTests("/src/test/TestMavenProject/testProject");
+            assertTrue(res);
+        }catch (Exception e) {
+            fail("Test failed due to exception: " + e.getMessage());
+        }
+
+    }
+
+
     @Test
     public void testUpdateGitHubStatus() throws Exception {
 

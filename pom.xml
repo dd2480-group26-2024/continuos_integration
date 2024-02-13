@@ -77,6 +77,14 @@
 			<artifactId>org.eclipse.jgit</artifactId>
 			<version>5.13.0.202109080827-r</version> 
     	</dependency>
+
+		<!--Used to run "mvn test" in repo -->
+    	<dependency>
+			<groupId>org.apache.maven.shared</groupId>
+			<artifactId>maven-invoker</artifactId>
+			<version>3.0.1</version>
+		</dependency>
+
 	</dependencies>
 	<properties>
 		 <maven.compiler.source>17</maven.compiler.source>
@@ -119,5 +127,4 @@
 			</plugin>
         </plugins>
     </build>
-    
 </project>
