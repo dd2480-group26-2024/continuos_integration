@@ -89,14 +89,14 @@ public class ContinuousIntegration extends AbstractHandler
             return false;
         }
     }
-    
-    
-    
-    
+
+
+
+
     public void handle(String target,
                        Request baseRequest,
                        HttpServletRequest request,
-                       HttpServletResponse response) 
+                       HttpServletResponse response)
         throws IOException, ServletException
     {
         response.setContentType("text/html;charset=utf-8");
@@ -104,9 +104,9 @@ public class ContinuousIntegration extends AbstractHandler
         baseRequest.setHandled(true);
 
         System.out.println(target);
-		
-		
-		
+
+
+
         // here you do all the continuous integration tasks
         // for example
         // 1st clone your repository
@@ -122,7 +122,18 @@ public class ContinuousIntegration extends AbstractHandler
 
     }
 
-    // Send email notfication method
+	/**
+	 * Sends an email notification to the committer's email account when a commit occurs.
+	 *
+	 * @param requestData   A HashMap containing request data obtained from the processRequestData method.
+	 *                      It should contain the following key-value pairs:
+	 *                          - "commit_id": The ID of the commit.
+	 *                          - "clone_url": The URL of the repository where the commit occurred.
+	 *                          - "email": The email address of the committer.
+	 * @param compileStatus A boolean indicating the status of the compilation process.
+	 *                      True indicates a successful compilation, false indicates a failure.
+	 * @return true if the email notification was successfully sent; otherwise, false.
+	 */
 	public boolean sendEmailNotification(HashMap<String, String> requestData, boolean compileStatus) {
 		final String username = "group26kth@gmail.com";
 		final String password = "tlsf nrys dquv mpce ";
@@ -166,7 +177,7 @@ public class ContinuousIntegration extends AbstractHandler
 		}
 		return false;
 	}
-  
+
   	// Returns a String[2], the first element is the clone_url, the second is the commit id
 	public String[] processRequestData(HttpServletRequest request){
 		String[] reqData = new String[2];
