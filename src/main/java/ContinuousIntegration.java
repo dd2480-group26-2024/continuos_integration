@@ -42,8 +42,7 @@ import org.apache.commons.io.FileUtils;
 //Java stuff
 
 /** 
- Skeleton of a ContinuousIntegrationServer which acts as webhook
- See the Jetty documentation for API documentation of those classes.
+ Simple continuous integration server for maven projects.
 */
 
 
@@ -352,7 +351,10 @@ private HttpClient httpClient;
 		return saveToBuildHistory(commitId, buildLogs, buildDate, "build_history");
 	}
 
-    
+    /**
+     * Function triggered by GitHub's webhook which builds a maven project and notifies the outcome.
+     *
+     */
 	public void handle(String target,
                        Request baseRequest,
                        HttpServletRequest request,
