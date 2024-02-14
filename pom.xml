@@ -113,21 +113,7 @@
 	<build>
         <finalName>build</finalName>
         <plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>3.6.3</version>
-				<configuration>
-				<!-- Default configuration for all reports -->
-                <failOnError>false</failOnError>
-                <destDir>/doc</destDir>
-                <!-- as there are lots of incorrectly documented sources -->
-                <additionalparam>-Xdoclint:none</additionalparam>
-				<reportOutputDirectory>${destDir}</reportOutputDirectory>
-				<outputDirectory>/doc</outputDirectory>
-				</configuration>
 
-			</plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
