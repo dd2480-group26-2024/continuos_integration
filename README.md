@@ -26,8 +26,7 @@ An email will be sent with the build information and status.
 The status of GitHub's commit will be set accordingly to the outcome of `mvn test`.
 
 ## Build History
-Link to the build history: https://htmlpreview.github.io/?https://github.com/dd2480-group26-2024/continuous_integration/blob/40/build_history/index.html
-
+Link to the build history: https://htmlpreview.github.io/?https://github.com/dd2480-group26-2024/continuous_integration/blob/main/build_history/index.html
 
 
 
