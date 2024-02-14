@@ -177,8 +177,7 @@ private HttpClient httpClient;
             }
             return projectWorking;
         } catch (Exception e) {
-            e.printStackTrace();
-            deleteDirectory(projectDirectory);
+            e.printStackTrace();            
             return false;
         }
     }
@@ -320,8 +319,7 @@ private HttpClient httpClient;
         
         // Compile and run tests
         boolean compileStatus = compileMavenProject(repo_path);
-        if(compileStatus == false){
-            deleteDirectory(repo_path);
+        if(compileStatus == false){            
         }    
         boolean testStatus;    
         try{
