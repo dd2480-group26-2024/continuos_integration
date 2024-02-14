@@ -15,6 +15,7 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.io.ByteArrayOutputStream;
 import org.json.JSONObject;
 
 import org.mockito.Mockito;
@@ -90,8 +91,21 @@ public class MavenTest {
         // run tests in new directory
         ContinuousIntegration ci = new ContinuousIntegration();
         try{
-            boolean res = ci.runTests("/src/test/TestMavenProject/testProject");
+            boolean res = ci.runTests("src/test/TestMavenProject/testProject", new ByteArrayOutputStream());
             assertTrue(res);
+        }catch (Exception e) {
+            fail("Test failed due to exception: " + e.getMessage());
+        }
+
+    }
+
+    @Test
+    public void testRepoTestingFailure(){
+        // run tests in new directory
+        ContinuousIntegration ci = new ContinuousIntegration();
+        try{
+            boolean res = ci.runTests("src/test/TestMavenProject/testProjectFailure", new ByteArrayOutputStream());
+            assertFalse(res);
         }catch (Exception e) {
             fail("Test failed due to exception: " + e.getMessage());
         }
