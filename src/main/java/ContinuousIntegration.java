@@ -45,8 +45,7 @@ import org.apache.commons.io.FileUtils;
 //Java stuff
 
 /** 
- Skeleton of a ContinuousIntegrationServer which acts as webhook
- See the Jetty documentation for API documentation of those classes.
+ Simple continuous integration server for maven projects.
 */
 
 
@@ -64,6 +63,18 @@ private HttpClient httpClient;
     public ContinuousIntegration() {
         this.httpClient =HttpClient.newHttpClient() ;
     }
+
+    /**
+     * Updates the status of a specific commit on GitHub based on the provided status.
+     *
+     * @param status      A boolean indicating the success or failure of the operation related to the commit.
+     *                    True represents a success, while false represents a failure.
+     * @param sha         The SHA hash of the commit for which the status is being updated.
+     * @param description A brief description that the CI server has commented.
+     * @return A string indicating the result of the update operation. Returns the state ("success" or "failure")
+     *         if the update is successful. In case of an error during the update process, returns a string starting
+     *         with "Error: " followed by the error message.
+     */
     public String updateGitHubStatus(boolean status, String sha, String description) {
             String status_string="";
             if(status){
@@ -95,9 +106,12 @@ private HttpClient httpClient;
         }
 
     /**
-     * 
+     * Method to clone the repository and checkout a specific commit
+     *
      * @param repoUrl the URL of the repository
+     *
      * @param commitId the commit ID to checkout
+     *
      * @param directoryPath the path where the repo will be cloned to.
      */
     public void cloneAndCheckout(String repoUrl, String commitId, String directoryPath) {
@@ -117,8 +131,18 @@ private HttpClient httpClient;
         }
     }
 
-
+    /**
+     * Method to execute the tests in a specific directory
+     *
+     * @param directoryPath Path to the directory where the test is placed
+     *
+     * @return              True if tests was executed correctly, false if otherwise
+     *
+     * @throws Exception    Exception thrown if MAVEN_HOME is not found
+     */
+     
     public static boolean runTests(String directoryPath, ByteArrayOutputStream logStream) throws Exception{
+
         File path = new File(directoryPath);
         InvocationRequest request = new DefaultInvocationRequest();
         request.setBaseDirectory( path );
@@ -152,7 +176,14 @@ private HttpClient httpClient;
 
     }
 
-    
+    /**
+     * Compiles a Maven project located in a specified directory.
+     *
+     * @param projectDirectory The path to the directory containing the Maven project. This directory
+     *                         should contain a 'pom.xml' file.
+     * @return true if the project compiles successfully without errors; false if the compilation
+     *         process fails or encounters errors.
+     */
     public boolean compileMavenProject(String projectDirectory) {
         try {
             // command to compile mvn program
@@ -184,7 +215,7 @@ private HttpClient httpClient;
             }
             return projectWorking;
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace();            
             return false;
         }
     }
@@ -248,7 +279,14 @@ private HttpClient httpClient;
 	}
 
 	
-	// Extract data from GitHub's request and return a HashMap<String, String> with the data required for the CI server
+	/**
+     * Processes the request data from a request, extracting information related to a git commit.
+     * 
+     * @param request   The HttpServletRequest from GitHub's webhook, which payload should be extracted.
+     * 
+     * @return          A HashMap containing the commit information.
+     *  The keys in the map include "repo_name", "clone_url", "commit_id", "email", "timestamp", and "commit_message". Or "error" if no head commit is found.
+     */
 	public HashMap<String,String> processRequestData(HttpServletRequest request){
 		JSONObject requestBody = new JSONObject(request.getParameter("payload"));
 		HashMap<String,String> map = new HashMap<>();		
@@ -265,7 +303,19 @@ private HttpClient httpClient;
 		return map;
 	}
 	
-	// Save build info in a build history
+	/**
+     * Add a new build to the build history.
+     * 
+     * Creates a new build HTML file with build information, and add a link to it in the build history.
+     * 
+     * @param commitId      String id of head commit
+     * @param buildLogs     String logs from commit compilation
+     * @param buildDate     String date of the build of the commit
+     * @param path          String path to the build history directory
+     * 
+     * @return              boolean - true if there is no IOException raised, false otherwise
+     *  
+     */
 	public boolean saveToBuildHistory(String commitId, String buildLogs, String buildDate, String path){
 		HashMap<String, String> buildData = new HashMap<>();
 		buildData.put("$commit_id", commitId);
@@ -294,11 +344,36 @@ private HttpClient httpClient;
 		return true;
 	}
 	
+	/**
+     * Add a new build to the build history.
+     * 
+     * Creates a new build HTML file with build information, and add a link to it in the build history.
+     * Uses the default directory "./build_history".
+     * 
+     * @param commitId      String id of head commit
+     * @param buildLogs     String logs from commit compilation
+     * @param buildDate     String date of the build of the commit
+     * 
+     * @return              boolean - true if there is no IOException raised, false otherwise       
+     */
 	public boolean saveToBuildHistory(String commitId, String buildLogs, String buildDate){
 		return saveToBuildHistory(commitId, buildLogs, buildDate, "build_history");
 	}
 
+
+    public void deleteDirectory(String path){
+        try {
+            FileUtils.deleteDirectory(new File(path));            
+        } catch (IOException e) {
+            System.err.println("An error occurred during directory deletion: " + e.getMessage());
+        }
+    }
     
+
+  /**
+   * Function triggered by GitHub's webhook which builds a maven project and notifies the outcome.
+   *
+   */
 	public void handle(String target,
                        Request baseRequest,
                        HttpServletRequest request,
@@ -319,6 +394,7 @@ private HttpClient httpClient;
         
         // Compile and run tests
         boolean compileStatus = compileMavenProject(repo_path);
+
         if(compileStatus == false){
             // Exit with failure
             sendEmailNotification(data, false);
@@ -334,6 +410,7 @@ private HttpClient httpClient;
             System.out.println("\t\tTest Logs: \n ====================== \n"+ testLogs.toString());
         }catch(Exception e){
             e.printStackTrace();
+            deleteDirectory(repo_path);
             return;
         }
         Date buildDate = new Date();
@@ -346,12 +423,7 @@ private HttpClient httpClient;
         
         saveToBuildHistory(data.get("commit_id"), testLogs.toString(), buildDate.toString());
         
-
-        try {
-            FileUtils.deleteDirectory(new File(repo_path));            
-        } catch (IOException e) {
-            System.err.println("An error occurred during directory deletion: " + e.getMessage());
-        }
+        deleteDirectory(repo_path);
 
         response.getWriter().println("CI job done");
     }
