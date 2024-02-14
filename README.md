@@ -26,12 +26,13 @@ An email will be sent with the build information and status.
 The status of GitHub's commit will be set accordingly to the outcome of `mvn test`.
 
 ## Build History
-Link to the build history: https://htmlpreview.github.io/?https://github.com/dd2480-group26-2024/continuous_integration/blob/40/build_history/index.html
+Link to the build history: https://htmlpreview.github.io/?https://github.com/dd2480-group26-2024/continuous_integration/blob/main/build_history/index.html
 
-# Documentation 
+Locally, the build history is saved under `./build_history` and is preserved after server shutdown.
+
+## Documentation 
 Open the index.html file located in doc/
 
 
-
-
-
+## SEMAT
+The team started the assignment with a group meeting where we discussed how we should divide the work. The outcomes of these assignments was looked as a possible learning to understand how CI systems work and how one could be developed. The team worked individually but used Discord to communicate and also to ask about the process. With regular meetings the team discussed and planned the next steps in the assignment, regular meetings lead to the team growth. Mechanism that were used to grow the team was to have the meetings and also being able to help out when it was needed. The team set up regular deadlines to make sure that everyone is committed to the assignment. With the first meeting, the goals of the assignment were clear and understood by everybody. Each individual in the team had the understanding of their role and what to do. With common deadlines, everyone knew when their part of work had to be done. Regular meetings were held in Discord (virtually). To get a perfect fit, we assigned the different parts of the assignment after competences, and that way the work was balanced. The team split up the assignment in different parts and assigned each part to a group member. The communication in the group was clear. The work was done individually, but when it was time to set up the different parts so that the assignment worked,  the group worked together. Tools as Live Share was used to find bugs and make small changes. When adaptions had to be made, the group identified the problems and implemented solutions. With continuous deadlines, the work was done in time. The work was efficient and done in time by the group. The group worked effectively and where done in time.
