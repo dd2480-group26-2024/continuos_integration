@@ -104,9 +104,12 @@ private HttpClient httpClient;
         }
 
     /**
-     * 
+     * Method to clone the repository and checkout a specific commit
+     *
      * @param repoUrl the URL of the repository
+     *
      * @param commitId the commit ID to checkout
+     *
      * @param directoryPath the path where the repo will be cloned to.
      */
     public void cloneAndCheckout(String repoUrl, String commitId, String directoryPath) {
@@ -126,7 +129,15 @@ private HttpClient httpClient;
         }
     }
 
-
+    /**
+     * Method to execute the tests in a specific directory
+     *
+     * @param directoryPath Path to the directory where the test is placed
+     *
+     * @return              True if tests was executed correctly, false if otherwise
+     *
+     * @throws Exception    Exception thrown if MAVEN_HOME is not found
+     */
     public static boolean runTests(String directoryPath) throws Exception{
         File path = new File(directoryPath);
         InvocationRequest request = new DefaultInvocationRequest();
