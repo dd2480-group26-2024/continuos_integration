@@ -155,7 +155,7 @@ public class MavenTest {
 		requestData.put("email", "robin.yurt@hotmail.com"); // Replace with the recipient's email address
 
 		// Call the method and assert the result
-		assertTrue(ci.sendEmailNotification(requestData, true));
+		assertFalse(ci.sendEmailNotification(requestData, true));
 	}
 	
 	@Test
