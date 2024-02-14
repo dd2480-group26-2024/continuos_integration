@@ -206,7 +206,7 @@ private HttpClient httpClient;
             }
             return projectWorking;
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace();            
             return false;
         }
     }
@@ -351,10 +351,20 @@ private HttpClient httpClient;
 		return saveToBuildHistory(commitId, buildLogs, buildDate, "build_history");
 	}
 
-    /**
-     * Function triggered by GitHub's webhook which builds a maven project and notifies the outcome.
-     *
-     */
+
+    public void deleteDirectory(String path){
+        try {
+            FileUtils.deleteDirectory(new File(path));            
+        } catch (IOException e) {
+            System.err.println("An error occurred during directory deletion: " + e.getMessage());
+        }
+    }
+    
+
+  /**
+   * Function triggered by GitHub's webhook which builds a maven project and notifies the outcome.
+   *
+   */
 	public void handle(String target,
                        Request baseRequest,
                        HttpServletRequest request,
@@ -375,14 +385,14 @@ private HttpClient httpClient;
         
         // Compile and run tests
         boolean compileStatus = compileMavenProject(repo_path);
-        if(compileStatus == false){
-            // Exit with failure
+        if(compileStatus == false){            
         }    
         boolean testStatus;    
         try{
             testStatus = runTests(repo_path);
         }catch(Exception e){
             e.printStackTrace();
+            deleteDirectory(repo_path);
             return;
         }
         Date buildDate = new Date();
@@ -395,12 +405,7 @@ private HttpClient httpClient;
         
         saveToBuildHistory(data.get("commit_id"), logInfo, buildDate.toString());
         
-
-        try {
-            FileUtils.deleteDirectory(new File(repo_path));            
-        } catch (IOException e) {
-            System.err.println("An error occurred during directory deletion: " + e.getMessage());
-        }
+        deleteDirectory(repo_path);
 
         response.getWriter().println("CI job done");
     }
