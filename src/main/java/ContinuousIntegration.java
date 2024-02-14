@@ -15,6 +15,9 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import org.apache.maven.shared.invoker.PrintStreamLogger;
 import java.io.File;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.json.JSONObject;
@@ -115,7 +118,7 @@ private HttpClient httpClient;
     }
 
 
-    public static boolean runTests(String directoryPath) throws Exception{
+    public static boolean runTests(String directoryPath, ByteArrayOutputStream logStream) throws Exception{
         File path = new File(directoryPath);
         InvocationRequest request = new DefaultInvocationRequest();
         request.setBaseDirectory( path );
@@ -131,17 +134,21 @@ private HttpClient httpClient;
 
             throw new Exception(errMsg);
         }
-
+        PrintStreamHandler logger = new PrintStreamHandler(new PrintStream(logStream), false);
+        request.setOutputHandler(logger);
         Invoker invoker = new DefaultInvoker();
         invoker.setMavenHome(new File (MAVEN_HOME));
         try{
             InvocationResult result = invoker.execute( request );
+            System.out.println(result.getExitCode());
+            return result.getExitCode() == 0;
 
-        }catch(MavenInvocationException e){
+        }catch(Exception e){
             e.printStackTrace();
-            return false;
+            System.out.println(e.getMessage());
+            
         }
-        return true;
+        return false;
 
     }
 
@@ -319,11 +326,20 @@ private HttpClient httpClient;
         
         // Compile and run tests
         boolean compileStatus = compileMavenProject(repo_path);
-        if(compileStatus == false){            
+
+        if(compileStatus == false){
+            // Exit with failure
+            sendEmailNotification(data, false);
+            updateGitHubStatus(false, data.get("commit_id"), "CI server status");
+            Date buildDate = new Date();
+            saveToBuildHistory(data.get("commit_id"), logInfo, buildDate.toString());
+            return;
         }    
-        boolean testStatus;    
+        ByteArrayOutputStream testLogs = new ByteArrayOutputStream();
+        boolean testStatus = false;    
         try{
-            testStatus = runTests(repo_path);
+            testStatus = runTests(repo_path, testLogs);
+            System.out.println("\t\tTest Logs: \n ====================== \n"+ testLogs.toString());
         }catch(Exception e){
             e.printStackTrace();
             deleteDirectory(repo_path);
@@ -337,7 +353,7 @@ private HttpClient httpClient;
         
         updateGitHubStatus(testStatus, data.get("commit_id"), "CI server status");
         
-        saveToBuildHistory(data.get("commit_id"), logInfo, buildDate.toString());
+        saveToBuildHistory(data.get("commit_id"), testLogs.toString(), buildDate.toString());
         
         deleteDirectory(repo_path);
 
