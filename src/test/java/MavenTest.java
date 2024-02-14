@@ -99,6 +99,19 @@ public class MavenTest {
 
     }
 
+    @Test
+    public void testRepoTestingFailure(){
+        // run tests in new directory
+        ContinuousIntegration ci = new ContinuousIntegration();
+        try{
+            boolean res = ci.runTests("src/test/TestMavenProject/testProjectFailure", new ByteArrayOutputStream());
+            assertFalse(res);
+        }catch (Exception e) {
+            fail("Test failed due to exception: " + e.getMessage());
+        }
+
+    }
+
 
     @Test
     public void testUpdateGitHubStatus() throws Exception {
