@@ -80,7 +80,7 @@ public class MavenTest {
 		expected.put("commit_message", "edited the sendEmailNotification method and removed the newly added method"); 
 		Mockito.when(request.getParameter("payload")).thenReturn(payload);
 		HashMap<String,String> result = ci.processRequestData(request);
-		assertTrue(result.equals(expected));
+		assertFalse(result.equals(expected));   // Test modified to make it fail
 	}
 
 
