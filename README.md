@@ -28,6 +28,8 @@ The status of GitHub's commit will be set accordingly to the outcome of `mvn tes
 ## Build History
 Link to the build history: https://htmlpreview.github.io/?https://github.com/dd2480-group26-2024/continuous_integration/blob/main/build_history/index.html
 
+Locally, the build history is saved under `./build_history` and is preserved after server shutdown.
+
 
 
 
